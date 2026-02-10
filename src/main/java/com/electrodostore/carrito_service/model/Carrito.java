@@ -29,4 +29,13 @@ public class Carrito {
     //Objeto embebido que hace referencia al cliente dueño del carrito
     @Embedded
     private ClienteSnapshot cliente;
+
+    //Definimos el estado en que se encuentra el carrito
+    /*La annotation @Enumerated define la forma en que se guarda este enum en la base de datos.
+    * El parámetro EnumType.STRING define que el valor del enum será guardado como String.
+    * NOTA: Por defecto hibernate usa EnumType.ORDINAL, el cual guarda el enum como número. Por ejemplo, el primer valor
+    * definido en el enum = 0, el segundo = 1 y así´sucesivamente. Esto es frágil y se considera una mala práctica por lo que
+    * siempre es importante definir EnumType.STRING*/
+    @Enumerated(EnumType.STRING)
+    private CarritoStatus status;
 }

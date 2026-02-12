@@ -42,7 +42,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(buildExceptionBody(HttpStatus.NOT_FOUND, ex.getMessage()));
     }
-    
+
     //Manejador de la excepción ClienteNotFound
     @ExceptionHandler(ClienteNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handlerClienteNotFound(ClienteNotFoundException ex){

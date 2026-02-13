@@ -49,4 +49,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(buildExceptionBody(HttpStatus.NOT_FOUND, ex.getMessage()));
     }
+
+    //Manejador de la excepción de dominio ServiceUnavailable
+    @ExceptionHandler(ServiceUnavailable.class)
+    public ResponseEntity<Map<String,Object>> handlerServiceUnavailable(ServiceUnavailable ex){
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(buildExceptionBody(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage()));
+    }
 }

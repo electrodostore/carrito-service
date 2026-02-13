@@ -14,6 +14,6 @@ public class ClienteNotFoundException extends RuntimeException {
         super(message);
 
         //Se le asigna el valor correspondiente del conjunto de valores guardados en CarritoErrorCode
-        this.errorCode = CarritoErrorCode.CLIENTE_NOT_FOUND;
+        this.errorCode = CarritoErrorCode.CLIENT_NOT_FOUND;
     }
 }

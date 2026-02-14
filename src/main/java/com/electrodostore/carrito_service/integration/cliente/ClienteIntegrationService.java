@@ -1,5 +1,6 @@
 package com.electrodostore.carrito_service.integration.cliente;
 
+import com.electrodostore.carrito_service.exception.BusinessException;
 import com.electrodostore.carrito_service.exception.ServiceUnavailable;
 import com.electrodostore.carrito_service.integration.cliente.client.ClienteFeignClient;
 import com.electrodostore.carrito_service.integration.cliente.dto.ClienteIntegrationDto;
@@ -30,6 +31,17 @@ public class ClienteIntegrationService {
     /*Método fallback para el método findCliente, este fallback actúa como un plan-B en caso de que ocurra un error de
      infraestructura en la petición a cliente-service. La función de este es informar sobre el error de comunicación al cliente*/
     public ClienteIntegrationDto findClienteFallback(Long clienteId, Throwable ex){
+
+        //Filtramos las excepciones de dominio y las lanzamos para evitar el ServiceUnavailable
+        if(ex instanceof BusinessException be){
+            /*Nuestro método fallback siempre recibe un objeto Throwable el cual es la excepción que lo activó.
+            * Como el tipo estático del objeto es Throwable, el compilador asume que puede ser una excepción Checked para
+            * las cuales exige un manejo explicito, pero como nuestra excepción realmente es una excepción de dominio
+            * que hereda de RuntimeException (UnChecked) no es necesario que hagamos este manejo ya que este tipo de excepciones
+            * java las propaga y las deja lanzar sin ningún problema. Entonces lo que hacemos es lanzar la excepción
+            * BusinessException que es la misma solo que con un tipo estático que hereda de RuntimeException*/
+            throw be;
+        }
 
         //Informamos la activación del fallback
         log.warn("fallback activado para el método findCliente. clienteId={}", clienteId, ex);

@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter //Exponemos campo(s)
 //Excepción personalizada para este dominio para cuando no se logre encontrar un Cliente consultado al servicio Ciente
-public class ClienteNotFoundException extends RuntimeException {
+public class ClienteNotFoundException extends BusinessException {
 
     //ErrorCode identificativo para esta excepción fuera del dominio
     private final CarritoErrorCode errorCode;

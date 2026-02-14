@@ -1,7 +1,7 @@
 package com.electrodostore.carrito_service.exception;
 
 //Excepción personalizada del dominio para cuando no se encuentre un producto consultado en producto-service
-public class ProductoNotFoundException extends RuntimeException {
+public class ProductoNotFoundException extends BusinessException {
 
     //Subimos mensaje para tenerlo disponible en el método getMessage()
     public ProductoNotFoundException(String message) {

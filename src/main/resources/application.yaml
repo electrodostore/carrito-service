@@ -13,6 +13,22 @@ spring:
 
     database-platform: org.hibernate.dialect.MySQLDialect
 
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+
+    instances:
+      cliente-service:
+        base-config: default
+        ignore-exceptions:
+          - feign.FeignException.NotFound
+          - com.electrodostore.carrito_service.exception.ClienteNotFoundException
+
 eureka:
   client:
     service-url:

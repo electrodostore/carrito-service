@@ -5,6 +5,7 @@ import com.electrodostore.carrito_service.exception.ServiceUnavailable;
 import com.electrodostore.carrito_service.integration.cliente.client.ClienteFeignClient;
 import com.electrodostore.carrito_service.integration.cliente.dto.ClienteIntegrationDto;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,7 @@ public class ClienteIntegrationService {
      infraestructura en la comunicación con cliente-service se abre y me redirige las peticiones al método fallback durante
       un tiempo determinado antes de volver a intentar comunicarse*/
     @CircuitBreaker(name = "cliente-service", fallbackMethod = "findClienteFallback")
+    @Retry(name = "cliente-service")
     public ClienteIntegrationDto findCliente(Long clienteId){
         return clienteFeignClient.findCliente(clienteId);
     }

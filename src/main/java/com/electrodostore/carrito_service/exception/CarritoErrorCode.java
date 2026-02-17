@@ -5,6 +5,9 @@ package com.electrodostore.carrito_service.exception;
  así interpretar y transformar esa response a la excepción de dominio correspondiente*/
 public enum CarritoErrorCode {
 
-    CLIENT_NOT_FOUND  //ErrorCode de ClienteNotFoundException
-
+    CARRITO_NOT_FOUND,  //ErrorCode de CarritoNotFoundException
+    CLIENT_NOT_FOUND,   //ErrorCode de ClienteNotFoundException
+    PRODUCT_NOT_FOUND,  //ErrorCode de ProductoNotFound
+    PRODUCT_STOCK_INSUFICIENTE,  //ErrorCode de ProductoStockInsuficienteException
+    SERVICE_UNAVAILABLE  //ErrorCode de ServiceUnavailable
 }

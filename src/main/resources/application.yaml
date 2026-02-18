@@ -29,6 +29,12 @@ resilience4j:
           - feign.FeignException.NotFound
           - com.electrodostore.carrito_service.exception.ClienteNotFoundException
 
+      producto-service:
+        base-config: default
+        ignore-exceptions:
+          - feign.FeignException.NotFound
+          - com.electrodostore.carrito_service.exception.ProductoNotFoundException
+
 eureka:
   client:
     service-url:

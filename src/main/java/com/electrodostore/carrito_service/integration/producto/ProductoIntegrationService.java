@@ -49,9 +49,37 @@ public class ProductoIntegrationService {
         }
 
         //Agregamos warn al log del proyecto indicando la activación del fallback
-        log.warn("fallback activado en la consulta de varios productos a producto-service");
+        log.warn("fallback activado en la consulta de varios productos a producto-service", ex);
 
         //Si la excepción que activó el fallback no es excepción de dominio -> Excepción de infraestructura (error técnico en la comunicación)
         throw new ServiceUnavailable("Error en la comunicación con producto-service. Por favor intente de nuevo más tarde");
+    }
+
+    //Método protegido por Circuit-Breaker para consultar un producto por su ID
+    @CircuitBreaker(name = "producto-service", fallbackMethod = "fallbackFindProducto")
+    @Retry(name = "producto-service")
+    public ProductoIntegrationDto findProducto(Long productoId){
+        //Consultamos por Feign el producto correspondiente
+        return productoClient.findProducto(productoId);
+    }
+
+    //Fallback para el método de consultar un producto por su id
+    //Firma del método + Throwable (Excepción que activó el fallback con tipo estático Throwable)
+    public ProductoIntegrationDto fallbackFindProducto(Long productoId, Throwable ex){
+
+        //Si la excepción que activó el fallback es excepción de dominio, no tiene sentido lanzar un ServiceUnavailable
+        if(ex instanceof BusinessException be){
+            /*be es la excepción que activó el fallback pero parseada de tipo estático Throwable a BusinessException.
+            * De igual forma el tipo dinámico de esta sigue siendo la excepción de dominio correspondiente*/
+            throw be;
+        }
+
+        //Si ex no es excepción de dominio, entonces la manejamos con excepción de infraestructura
+
+        //Indicamos la activación del fallback
+        log.warn("Fallback activado en la comunicación con producto-service. productoId={}", productoId, ex);
+
+        //Lanzamos excepción indicando el problema de comunicación
+        throw new ServiceUnavailable("No fue posible establecer la comunicación con producto-service. Intente de nuevo más tarde");
     }
 }

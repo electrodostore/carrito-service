@@ -5,6 +5,7 @@ import com.electrodostore.carrito_service.exception.ServiceUnavailable;
 import com.electrodostore.carrito_service.integration.producto.client.ProductoFeignClient;
 import com.electrodostore.carrito_service.integration.producto.dto.ProductoIntegrationDto;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +28,7 @@ public class ProductoIntegrationService {
     /*En caso de que ocurra un error en la comunicación, se activará el fallback asociado a este método y ahí se manejará ya
      sea como excepción de dominio o excepción de infraestructura*/
     @CircuitBreaker(name = "producto-service", fallbackMethod = "fallbackFindProductos")
+    @Retry(name = "producto-service")
     public List<ProductoIntegrationDto> findProductos(List<Long> productosIds){
         //En caso de tener ids duplicados en la lista, es mejor borrarlos
         Set<Long> productosIdsUnicos = new HashSet<>(productosIds);

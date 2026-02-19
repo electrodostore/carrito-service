@@ -7,6 +7,7 @@ import com.electrodostore.carrito_service.model.Carrito;
 import com.electrodostore.carrito_service.model.ClienteSnapshot;
 import com.electrodostore.carrito_service.repository.ICarritoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import static com.electrodostore.carrito_service.model.CarritoStatus.PENDING;
 
@@ -29,6 +30,8 @@ public class CarritoService implements ICarritoService{
         return new ClienteSnapshot(objCliente.getId(), objCliente.getName(), objCliente.getCellphone(),
                 objCliente.getDocument(), objCliente.getAddress());
     }
+
+    @Transactional
     @Override
     public CarritoCreadoResponseDto crearCarrito(Long clienteId) {
         //Se crea el nuevo carrito que será registrado, en principio, vacío

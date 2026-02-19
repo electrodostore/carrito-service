@@ -10,7 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.util.List;
 
 //Clase descriptiva de cada uno de los métodos para hacer peticiones al servicio Producto
-@FeignClient(name = "producto-service") //Mismo nombre con el que se registró en eureka-server
+@FeignClient(name = "producto-service", //Mismo nombre con el que se registró en eureka-server
+        configuration = ProductoFeignConfig.class) //Le mostramos a Feign la configuración para este FeignClient para que la asocie a él
 public interface ProductoFeignClient {
 
     //Descripción del método para consultar una lista de productos por sus ids

@@ -29,11 +29,8 @@ public class ProductoIntegrationService {
      sea como excepción de dominio o excepción de infraestructura*/
     @CircuitBreaker(name = "producto-service", fallbackMethod = "fallbackFindProductos")
     @Retry(name = "producto-service")
-    public List<ProductoIntegrationDto> findProductos(List<Long> productosIds){
-        //En caso de tener ids duplicados en la lista, es mejor borrarlos
-        Set<Long> productosIdsUnicos = new HashSet<>(productosIds);
-
-        return productoClient.findProductos(new ArrayList<>(productosIdsUnicos));
+    public List<ProductoIntegrationDto> findProductos(Set<Long> productosIds){
+        return productoClient.findProductos(new ArrayList<>(productosIds));
     }
 
     //Fallback del método findProductos

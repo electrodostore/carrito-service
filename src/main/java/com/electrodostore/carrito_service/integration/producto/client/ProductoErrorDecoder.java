@@ -2,6 +2,7 @@ package com.electrodostore.carrito_service.integration.producto.client;
 
 import com.electrodostore.carrito_service.exception.CarritoErrorCode;
 import com.electrodostore.carrito_service.exception.ProductoNotFoundException;
+import com.electrodostore.carrito_service.exception.ProductoStockInsuficienteException;
 import com.electrodostore.carrito_service.integration.common.ErrorBodyResponseDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
@@ -44,7 +45,9 @@ public class ProductoErrorDecoder implements ErrorDecoder {
                     case PRODUCT_NOT_FOUND:
                         return new ProductoNotFoundException(error.getMensaje());
 
-                    //En este caso no tenemos otro errorCode que interpretar, pero claro que esto puede cambiar a medida que el proyecto crezca
+                    //Si el errorCode es indicando que un producto no tiene suficiente stock -> Excepción de dominio que lo indica
+                    case PRODUCT_STOCK_INSUFICIENTE:
+                        return new ProductoStockInsuficienteException(error.getMensaje());
                 }
             }
 

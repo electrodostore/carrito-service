@@ -79,4 +79,28 @@ public class ProductoIntegrationService {
         //Lanzamos excepción indicando el problema de comunicación
         throw new ServiceUnavailable("No fue posible establecer la comunicación con producto-service. Intente de nuevo más tarde");
     }
+
+    /*Método protegido que usa el FeignClient para consultar en producto-service si el stock de un determinado producto
+       es suficiente para la cantidad que se desea comprar de este*/
+    @CircuitBreaker(name = "producto-service", fallbackMethod = "fallbackVerificarProductoStock")
+    public void verificarProductoStock(Long productoId, int cantidadVerificar){
+        productoClient.verificarStockProducto(productoId, cantidadVerificar);
+    }
+
+    //Fallback del método verificarProductoStock
+    public void fallbackVerificarProductoStock(Long productoId, int cantidadVerificar, Throwable ex){
+
+        //Si la excepción es excepción de dominio -> Evitamos el ServiceUnavailable y la lanzamos
+        if(ex instanceof BusinessException be){
+            throw be;
+        }
+
+        //Si no es excepción de dominio indicamos la activación del fallback en el log del proyecto
+        log.warn("fallback activado en verificación de stock del producto con id={}", productoId, ex);
+
+        //Lanzamos excepción de infraestructura
+        throw new ServiceUnavailable("No se pudo establecer comunicación con producto-service. Intente de nuevo más tarde");
+    }
+
+
 }

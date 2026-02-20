@@ -9,7 +9,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 //DTO que almacena el ID del producto y la cantidad que se quiere comprar de este cuando se agregue un producto al carrito
-public class ProductoAgregadoDto {
+public class ProductoAgregarDto {
 
     private Long id; //id del producto a agregar
     private int quantity; //Cantidad que se quiere comprar

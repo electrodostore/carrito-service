@@ -22,5 +22,8 @@ public interface ProductoFeignClient {
     @GetMapping("/productos/{productoId}")
     ProductoIntegrationDto findProducto(@PathVariable Long productoId);
 
+    //Descripción del método que verifica si el stock de un producto es suficiente basado en la cantidad que se desea comprar
+    @PostMapping("/productos/verificar-stock/{productoId}")
+    void verificarStockProducto(@PathVariable Long productoId, @RequestBody int cantidadVerificar);
 
 }

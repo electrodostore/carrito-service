@@ -1,9 +1,6 @@
 package com.electrodostore.carrito_service.service;
 
-import com.electrodostore.carrito_service.dto.CarritoCreadoResponseDto;
-import com.electrodostore.carrito_service.dto.CarritoResponseDto;
-import com.electrodostore.carrito_service.dto.ClienteResponseDto;
-import com.electrodostore.carrito_service.dto.ProductoResponseDto;
+import com.electrodostore.carrito_service.dto.*;
 import com.electrodostore.carrito_service.exception.CarritoNotFoundException;
 import com.electrodostore.carrito_service.exception.ProductoNotFoundException;
 import com.electrodostore.carrito_service.integration.cliente.ClienteIntegrationService;
@@ -17,6 +14,7 @@ import com.electrodostore.carrito_service.repository.ICarritoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 import static com.electrodostore.carrito_service.model.CarritoStatus.PENDING;
@@ -39,7 +37,7 @@ public class CarritoService implements ICarritoService {
     }
 
     //Método propio para hacer la integración con productoService y consultar uno o varios productos por su id
-    //En caso de que ocurran problemas en la integración (algún producto no fue encontrado, no se mandó a consultar nada, etc) también es manejarán aquí
+    //En caso de que ocurran problemas en la integración (algún producto no fue encontrado, no se mandó a consultar nada, etc) también se manejarán aquí
     private List<ProductoIntegrationDto> findProductos(Set<Long> productosIds){
 
         //En caso de que no se mande ningún ID de producto en la lista, no podemos hacer la integración
@@ -59,13 +57,36 @@ public class CarritoService implements ICarritoService {
         return productosIntegration;
     }
 
-    /*Método propio para transferir los datos de una lista de productos, que se integraron desde producto-service este
-         servicio, a una lista de objetos Snapshot para su posterior persistencia en la base de datos*/
-    private List<ProductoSnapshot> productosIntegrationToSnapshot(List<ProductoIntegrationDto> productosIntegration){
-        //Lista de Snapshots de los productos que se integraron
+    /*Método propio para transferir los datos de una lista de productos (que se integraron desde producto-service a este
+         servicio) a una lista de objetos Snapshot para su posterior persistencia en la base de datos*/
+    /*Para esto necesitamos la lista de los productos que se integraron (productosIntegration) y la lista con el id la
+     cantidad que se quiere comprar de cada producto (productosAgregados) */
+    private List<ProductoSnapshot> productosIntegrationToSnapshot(List<ProductoIntegrationDto> productosIntegration, Set<ProductoAgregarDto> productosAgregar){
+        //Lista de Snapshots para los productos que se integraron
         List<ProductoSnapshot> productosSnapshot = new ArrayList<>();
 
-        return null;
+        //Se recorre la lista de los productos que se quieren agregar al carrito (estos objetos contienen en el ID y la cantidad que se desea comprar del producto)
+        for(ProductoAgregarDto objProductoAgregar: productosAgregar){
+
+            //Ahora, recorremos la lista de los productos que se integraron, estos deben ser equivalentes a los que se quiere agregar
+            for(ProductoIntegrationDto objProductoIntegration: productosIntegration){
+                //Comparamos por ID cada producto para encontrar las coincidencias
+                if(objProductoAgregar.getId().equals(objProductoIntegration.getId())){
+                    //Primero verificamos si el stock del producto es suficiente para la cantidad que se quiere comprar
+                    productoIntegration.verificarProductoStock(objProductoIntegration.getId(), objProductoAgregar.getQuantity());
+
+                    //Se calcula el subTotal de cada producto comprado en formato BigDecimal
+                    BigDecimal subTotal = objProductoIntegration.getPrice().multiply(BigDecimal.valueOf(objProductoAgregar.getQuantity()));
+
+                    //Creamos la instancia del objeto Snapshot con base a los datos de ambos objetos (objProductoIntegration y objProductoAgregar)
+                    productosSnapshot.add(new ProductoSnapshot(objProductoAgregar.getId(), objProductoIntegration.getName(), objProductoIntegration.getPrice(),
+                            objProductoAgregar.getQuantity(), subTotal,
+                                    objProductoIntegration.getDescription()));
+                }
+            }
+        }
+
+        return productosSnapshot;
     }
 
     //Método propio cuya función es preparar un Cliente para ser guardado como parte del registro de un carrito en la base de datos

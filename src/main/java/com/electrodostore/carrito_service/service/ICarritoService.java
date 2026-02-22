@@ -2,6 +2,7 @@ package com.electrodostore.carrito_service.service;
 
 import com.electrodostore.carrito_service.dto.CarritoCreadoResponseDto;
 import com.electrodostore.carrito_service.dto.CarritoResponseDto;
+import com.electrodostore.carrito_service.dto.ProductoAgregarDto;
 
 import java.util.List;
 

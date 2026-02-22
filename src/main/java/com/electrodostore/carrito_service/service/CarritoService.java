@@ -38,40 +38,53 @@ public class CarritoService implements ICarritoService {
 
     //Método propio para hacer la integración con productoService y consultar uno o varios productos por su id
     //En caso de que ocurran problemas en la integración (algún producto no fue encontrado, no se mandó a consultar nada, etc) también se manejarán aquí
-    private List<ProductoIntegrationDto> findProductos(Set<Long> productosIds){
+    private List<ProductoIntegrationDto> findProductos(Set<Long> productosIds) {
 
         //En caso de que no se mande ningún ID de producto en la lista, no podemos hacer la integración
-        if(productosIds.isEmpty()){throw new ProductoNotFoundException("Ningún producto fue mandado a consultar");}
+        if (productosIds.isEmpty()) {throw new ProductoNotFoundException("Ningún producto fue mandado a consultar");}
 
         //Si solo se manda a consultar un producto, no es necesario usar el método de integración que consulta una lista de estos
         //Set no me permite acceder a los elementos de la lista, por eso toca hacer un casting a List para sacar el id del producto
-        if(productosIds.size() == 1){return List.of(productoIntegration.findProducto(new ArrayList<>(productosIds).get(0)));}
+        if (productosIds.size() == 1) {return List.of(productoIntegration.findProducto(new ArrayList<>(productosIds).get(0)));}
 
         //Si son varios los productos sacamos la lista de estos
         List<ProductoIntegrationDto> productosIntegration = findProductos(productosIds);
 
         //Comparamos longitudes de la lista de ids con la lista de productos que llegaron en la integración para determinar si llegaron todos
-        if(productosIntegration.size() < productosIds.size()){throw new ProductoNotFoundException("Uno o varios productos no fueron encontrado");}
+        if (productosIntegration.size() < productosIds.size()) {throw new ProductoNotFoundException("Uno o varios productos no fueron encontrado");}
 
         //Finalmente, si todo está ok -> Retornamos lista
         return productosIntegration;
+    }
+
+    //Método propio para sacar los ids de una lista de productos que se quieren agregar a un carrito
+    private List<Long> sacarIdsProductos(List<ProductoAgregarDto> listProductos) {
+        //Lista donde se almacenan los ids
+        List<Long> productosIds = new ArrayList<>();
+
+        //Recorremos los productos y vamos agregando cada id de cada producto
+        for (ProductoAgregarDto objProducto : listProductos) {
+            productosIds.add(objProducto.getId());
+        }
+
+        return productosIds;
     }
 
     /*Método propio para transferir los datos de una lista de productos (que se integraron desde producto-service a este
          servicio) a una lista de objetos Snapshot para su posterior persistencia en la base de datos*/
     /*Para esto necesitamos la lista de los productos que se integraron (productosIntegration) y la lista con el id la
      cantidad que se quiere comprar de cada producto (productosAgregados) */
-    private List<ProductoSnapshot> productosIntegrationToSnapshot(List<ProductoIntegrationDto> productosIntegration, Set<ProductoAgregarDto> productosAgregar){
+    private List<ProductoSnapshot> productosIntegrationToSnapshot(List<ProductoIntegrationDto> productosIntegration, Set<ProductoAgregarDto> productosAgregar) {
         //Lista de Snapshots para los productos que se integraron
         List<ProductoSnapshot> productosSnapshot = new ArrayList<>();
 
         //Se recorre la lista de los productos que se quieren agregar al carrito (estos objetos contienen en el ID y la cantidad que se desea comprar del producto)
-        for(ProductoAgregarDto objProductoAgregar: productosAgregar){
+        for (ProductoAgregarDto objProductoAgregar : productosAgregar) {
 
             //Ahora, recorremos la lista de los productos que se integraron, estos deben ser equivalentes a los que se quiere agregar
-            for(ProductoIntegrationDto objProductoIntegration: productosIntegration){
+            for (ProductoIntegrationDto objProductoIntegration : productosIntegration) {
                 //Comparamos por ID cada producto para encontrar las coincidencias
-                if(objProductoAgregar.getId().equals(objProductoIntegration.getId())){
+                if (objProductoAgregar.getId().equals(objProductoIntegration.getId())) {
                     //Primero verificamos si el stock del producto es suficiente para la cantidad que se quiere comprar
                     productoIntegration.verificarProductoStock(objProductoIntegration.getId(), objProductoAgregar.getQuantity());
 
@@ -81,7 +94,7 @@ public class CarritoService implements ICarritoService {
                     //Creamos la instancia del objeto Snapshot con base a los datos de ambos objetos (objProductoIntegration y objProductoAgregar)
                     productosSnapshot.add(new ProductoSnapshot(objProductoAgregar.getId(), objProductoIntegration.getName(), objProductoIntegration.getPrice(),
                             objProductoAgregar.getQuantity(), subTotal,
-                                    objProductoIntegration.getDescription()));
+                            objProductoIntegration.getDescription()));
                 }
             }
         }
@@ -96,7 +109,7 @@ public class CarritoService implements ICarritoService {
     }
 
     /*Método propio para preparar los datos de los diferentes productos de un carrito para que sean expuestos al cliente,
-      esto se logra almacenandolos en objetos de transferencia de datos (DTOs) a partir del registro que tenemos de estos como Snapshot*/
+      esto se logra almacenándolos en objetos de transferencia de datos (DTOs) a partir del registro que tenemos de estos como Snapshot*/
     private List<ProductoResponseDto> productosSnapshotToResponse(List<ProductoSnapshot> listProductos) {
 
         //Se crea la lista de los DTOs
@@ -134,7 +147,7 @@ public class CarritoService implements ICarritoService {
     }
 
     //Método propio para sacar una instancia de la clase DTO que me expone los datos de un carrito al cliente
-    private CarritoResponseDto buildCarritoResponse(Carrito objCarrito){
+    private CarritoResponseDto buildCarritoResponse(Carrito objCarrito) {
         //Sacamos objeto para la transferencia de los datos de un carrito (DTO)
         return new CarritoResponseDto(
                 objCarrito.getId(),
@@ -150,7 +163,7 @@ public class CarritoService implements ICarritoService {
         //Lista de DTOs de los carritos
         List<CarritoResponseDto> listCarritos = new ArrayList<>();
 
-        for(Carrito objCarrito: carritoRepo.findAll()){
+        for (Carrito objCarrito : carritoRepo.findAll()) {
             //Vamos transfiriendo los datos de los carritos a los objetos DTO y agregando a la lista
             listCarritos.add(buildCarritoResponse(objCarrito));
         }

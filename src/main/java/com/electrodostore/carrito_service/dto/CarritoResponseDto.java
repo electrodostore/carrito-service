@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +20,7 @@ import java.util.List;
 public class CarritoResponseDto {
 
     private Long id;
+    private BigDecimal total;
     private List<ProductoResponseDto> listProductos = new ArrayList<>();
     private ClienteResponseDto cliente;
     private CarritoStatus status;

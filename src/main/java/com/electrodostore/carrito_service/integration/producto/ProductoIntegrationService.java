@@ -10,9 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Slf4j //@Slf4j contiene un logger para lanzar errores o warnings informativos al log del proyecto
 //Servicio donde se definen los métodos protegidos por Circuit-Breaker que harán diferentes peticiones a producto-service por medio del cliente Feign
@@ -29,7 +27,7 @@ public class ProductoIntegrationService {
      sea como excepción de dominio o excepción de infraestructura*/
     @CircuitBreaker(name = "producto-service", fallbackMethod = "fallbackFindProductos")
     @Retry(name = "producto-service")
-    public List<ProductoIntegrationDto> findProductos(Set<Long> productosIds){
+    public List<ProductoIntegrationDto> findProductos(List<Long> productosIds){
         return productoClient.findProductos(new ArrayList<>(productosIds));
     }
 

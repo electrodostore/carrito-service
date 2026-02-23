@@ -38,17 +38,16 @@ public class CarritoService implements ICarritoService {
 
     //Método propio para hacer la integración con productoService y consultar uno o varios productos por su id
     //En caso de que ocurran problemas en la integración (algún producto no fue encontrado, no se mandó a consultar nada, etc) también se manejarán aquí
-    private List<ProductoIntegrationDto> findProductos(Set<Long> productosIds) {
+    private List<ProductoIntegrationDto> findProductos(List<Long> productosIds) {
 
         //En caso de que no se mande ningún ID de producto en la lista, no podemos hacer la integración
         if (productosIds.isEmpty()) {throw new ProductoNotFoundException("Ningún producto fue mandado a consultar");}
 
         //Si solo se manda a consultar un producto, no es necesario usar el método de integración que consulta una lista de estos
-        //Set no me permite acceder a los elementos de la lista, por eso toca hacer un casting a List para sacar el id del producto
-        if (productosIds.size() == 1) {return List.of(productoIntegration.findProducto(new ArrayList<>(productosIds).get(0)));}
+        if (productosIds.size() == 1) {return List.of(productoIntegration.findProducto(productosIds.get(0)));}
 
         //Si son varios los productos sacamos la lista de estos
-        List<ProductoIntegrationDto> productosIntegration = findProductos(productosIds);
+        List<ProductoIntegrationDto> productosIntegration = productoIntegration.findProductos(productosIds);
 
         //Comparamos longitudes de la lista de ids con la lista de productos que llegaron en la integración para determinar si llegaron todos
         if (productosIntegration.size() < productosIds.size()) {throw new ProductoNotFoundException("Uno o varios productos no fueron encontrado");}
@@ -70,11 +69,56 @@ public class CarritoService implements ICarritoService {
         return productosIds;
     }
 
+    /*Método propio para filtrar los productos que ya se habían agregado al carrito para que en vez de agregarlos otra vez
+    *  se le sume la cantidad y el subtotal al producto que ya estaba registrado dentro del carrito*/
+    private List<ProductoSnapshot> filtrarProductosExistentes(Carrito carrito, List<ProductoSnapshot> productosAgregar){
+        //Aquí se van a almacenar los productos que no estén ya dentro del carrito
+        List<ProductoSnapshot> productosNuevos = new ArrayList<>();
+
+        //Se recorre la lista de los productos que se quieren agregar al carrito para irlos comparando con los que ya estaban
+        for(ProductoSnapshot productoAgregar: productosAgregar){
+
+            //Creamos variable booleana para saber, una vez se salga del bucle siguiente, si se encontró o no coincidencia con productoAgregar
+            boolean validacionCoincidencia  = false;
+
+            //Recorremos ahora la lista de los productos que están dentro del carrito para poder comparar
+            for(ProductoSnapshot productoCarrito: carrito.getListProductos()){
+
+                //Si encontramos coincidencia entre el producto que se quiere agregar y uno que ya estaba en el carrito, hacemos los cambios en el carrito
+                if(productoAgregar.getProductId().equals(productoCarrito.getProductId())){
+
+                    //A la cantidad comprada que ya estaba registrada se le suma la cantidad nueva que se quiere agregar
+                    productoCarrito.setPurchasedQuantity(
+                            productoCarrito.getPurchasedQuantity() + productoAgregar.getPurchasedQuantity()
+                    );
+
+                    //Al subtotal del producto que ya estaba en el carrito se le suma el subtotal nuevo que se quiere agregar
+                    productoCarrito.setSubTotal(
+                            //Como los subtotales son formato BigDecimal, toca sumarlos con el método add() de esa clase
+                            productoCarrito.getSubTotal().add(productoAgregar.getSubTotal())
+                    );
+
+                    //Cambiamos la validación a true, ya que encontramos coincidencia
+                    validacionCoincidencia = true;
+
+                    //Si ya encontramos la coincidencia no tiene sentido seguir buscando
+                    break;
+                }
+            }
+
+            //Con la ayuda de validacionCoincidencia determinamos si la salida del bucle fue porque se encontró la coincidencia (true) o no se encontró (false)
+            if(!validacionCoincidencia){productosNuevos.add(productoAgregar);}
+        }
+
+        //Al final, retornamos la lista con los productos que si son realmente nuevos
+        return productosNuevos;
+    }
+
     /*Método propio para transferir los datos de una lista de productos (que se integraron desde producto-service a este
          servicio) a una lista de objetos Snapshot para su posterior persistencia en la base de datos*/
     /*Para esto necesitamos la lista de los productos que se integraron (productosIntegration) y la lista con el id la
      cantidad que se quiere comprar de cada producto (productosAgregados) */
-    private List<ProductoSnapshot> productosIntegrationToSnapshot(List<ProductoIntegrationDto> productosIntegration, Set<ProductoAgregarDto> productosAgregar) {
+    private List<ProductoSnapshot> productosIntegrationToSnapshot(List<ProductoIntegrationDto> productosIntegration, List<ProductoAgregarDto> productosAgregar) {
         //Lista de Snapshots para los productos que se integraron
         List<ProductoSnapshot> productosSnapshot = new ArrayList<>();
 

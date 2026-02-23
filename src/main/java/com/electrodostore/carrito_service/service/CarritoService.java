@@ -171,7 +171,7 @@ public class CarritoService implements ICarritoService {
     }
 
     //Método propio para calcular el total de un carrito a partir de los productos que tenga dentro
-    private BigDecimal calcularTotalCarrito(List<ProductoSnapshot> listProductos){
+    private BigDecimal calcularTotalCarrito(Set<ProductoSnapshot> listProductos){
         BigDecimal total = BigDecimal.ZERO;
 
         for(ProductoSnapshot objProducto: listProductos){
@@ -207,6 +207,7 @@ public class CarritoService implements ICarritoService {
         //Sacamos objeto para la transferencia de los datos de un carrito (DTO)
         return new CarritoResponseDto(
                 objCarrito.getId(),
+                objCarrito.getTotal(),
                 productosSnapshotToResponse(new ArrayList<>(objCarrito.getListProductos())),
                 clienteSnapshotToResponse(objCarrito.getCliente()),
                 objCarrito.getStatus()
@@ -281,6 +282,11 @@ public class CarritoService implements ICarritoService {
         for(ProductoSnapshot productoSnapshot: productosNuevos){
             objCarrito.getListProductos().add(productoSnapshot);
         }
+
+        //Le recalculamos el total actualizado al carrito
+        objCarrito.setTotal(
+                calcularTotalCarrito(objCarrito.getListProductos())
+        );
 
         //Actualizamos cambios en la base de datos
         carritoRepo.save(objCarrito);

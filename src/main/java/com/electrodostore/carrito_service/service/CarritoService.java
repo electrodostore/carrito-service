@@ -170,6 +170,18 @@ public class CarritoService implements ICarritoService {
         return listProductosResponse;
     }
 
+    //Método propio para calcular el total de un carrito a partir de los productos que tenga dentro
+    private BigDecimal calcularTotalCarrito(List<ProductoSnapshot> listProductos){
+        BigDecimal total = BigDecimal.ZERO;
+
+        for(ProductoSnapshot objProducto: listProductos){
+            //Para sumar BigDecimal debe ser por el método add() de la clase
+            total = total.add(objProducto.getSubTotal());
+        }
+
+        return total;
+    }
+
     //Método propio para consultar un carrito por su id. En caso de que no exista lo notificamos con la respectiva excepción de dominio
     private Carrito findCarrito(Long carritoId) {
         //Guardamos objeto en un optional para evitar el null en caso de que no exista el carrito

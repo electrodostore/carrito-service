@@ -59,6 +59,7 @@ public class GlobalExceptionHandler {
     }
 
     //Handler de la excepción de dominio ProductoStockInsuficiente
+    @ExceptionHandler(ProductoStockInsuficienteException.class)
     public  ResponseEntity<Map<String, Object>> handlerProductoStockInsuficiente(ProductoStockInsuficienteException ex){
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(buildExceptionBody(HttpStatus.NOT_FOUND, ex.getMessage(), ex.getErrorCode().name()));

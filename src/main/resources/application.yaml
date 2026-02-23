@@ -36,6 +36,7 @@ resilience4j:
         ignore-exceptions:
           - feign.FeignException.NotFound
           - com.electrodostore.carrito_service.exception.ProductoNotFoundException
+          - com.electrodostore.carrito_service.exception.ProductoStockInsuficienteException
 
 eureka:
   client:

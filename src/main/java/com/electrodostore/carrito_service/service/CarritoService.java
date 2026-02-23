@@ -246,4 +246,35 @@ public class CarritoService implements ICarritoService {
         //Retornamos los datos del carrito relevante para su posterior manejo
         return new CarritoCreadoResponseDto(objCarrito.getId(), objCarrito.getStatus());
     }
+
+    @Transactional
+    @Override
+    public CarritoResponseDto agregarProductos(Long carritoId, List<ProductoAgregarDto> productosAgregar) {
+        //Buscamos el carrito para confirmamos que existe
+        Carrito objCarrito = findCarrito(carritoId);
+
+        //sacamos los ids de los productos que se quieren agregar y buscamos los productos
+        List<ProductoIntegrationDto> productosIntegration = findProductos(
+                 sacarIdsProductos(productosAgregar)
+        );
+
+        //Con los datos de los productos que se integraron construimos los Snapshots para persistirlos en la base de datos
+        List<ProductoSnapshot> productosSnapshot = productosIntegrationToSnapshot(productosIntegration, productosAgregar);
+
+        /*Antes de agregar los productos a la lista de productos del carrito, debemos verificar si alguno no se encuentra
+         ya dentro de este. Para esto usamos el método "filtrarProductosExistentes"*/
+        List<ProductoSnapshot> productosNuevos = filtrarProductosExistentes(objCarrito, productosSnapshot);
+
+        //Agregamos los nuevos productos al carrito
+        for(ProductoSnapshot productoSnapshot: productosNuevos){
+            objCarrito.getListProductos().add(productoSnapshot);
+        }
+
+        //Actualizamos cambios en la base de datos
+        carritoRepo.save(objCarrito);
+
+        //Preparamos el carrito para ser expuesto con los nuevos productos
+        return buildCarritoResponse(objCarrito);
+    }
+
 }

@@ -18,4 +18,7 @@ public interface ICarritoService {
     //Crear un carrito asignado a un determinado cliente
     CarritoCreadoResponseDto crearCarrito(Long clienteId);
 
+    //Método para agregar uno o varios productos a un determinado carrito
+    CarritoResponseDto agregarProductos(Long carritoId, List<ProductoAgregarDto> productosAgregar);
+
 }

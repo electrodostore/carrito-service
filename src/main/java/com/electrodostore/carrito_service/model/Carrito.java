@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -19,7 +20,8 @@ public class Carrito {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     private Long id;
-
+    //Cuando recién se crea el carrito, el total es cero
+    private BigDecimal total = BigDecimal.ZERO;
     /*@ElementCollection crea una tabla secundaria donde se relaciona la colección de los diferentes objetos embebidos de
     ProductoSnapshot con el carrito que los contiene*/
     @ElementCollection

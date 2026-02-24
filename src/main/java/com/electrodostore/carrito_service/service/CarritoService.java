@@ -295,4 +295,51 @@ public class CarritoService implements ICarritoService {
         return buildCarritoResponse(objCarrito);
     }
 
+    @Transactional
+    @Override
+    public CarritoResponseDto deleteProductos(Long carritoId, List<Long> productosEliminarIds) {
+        //Buscamos carrito para verificar que existe
+        Carrito objCarrito = findCarrito(carritoId);
+
+        //Lista que va a almacenar los productos que NO se quieren eliminar
+        //La idea es reconstruir la lista de productos excluyendo a los productos que se quieren a eliminar
+        Set<ProductoSnapshot> productosSobrevivientes = new LinkedHashSet<>();
+
+        //Recorremos los productos registrados en el carrito para encontrar los que se van a eliminar
+        for(ProductoSnapshot objProducto: objCarrito.getListProductos()){
+
+            //Creamos variable auxiliar  que me ayuda a saber si se encontró o no coincidencia
+            boolean validacionCoincidencia = false;
+
+            //Ahora recorremos los ids de los productos que se mandaron a eliminar para poder encontrar coincidencias
+            for(Long productoId: productosEliminarIds){
+
+                //Si encontramos que el ID del producto registrado es igual a uno de los ids que se mandaron a eliminar, COINCIDENCIA ENCONTRADA
+                if(objProducto.getProductId().equals(productoId)){
+                    //Se guarda la confirmación en la variable auxiliar
+                    validacionCoincidencia = true;
+
+                    //Cuando encontremos coincidencia ya no tiene sentido seguir buscando
+                    break;
+                }
+            }
+
+            //Si la variable auxiliar = false --> No se encontró coincidencia, luego la negación de esta va a ser true
+            //Si la negación es true, podemos agregar el producto a los objetos que no se van a eliminar
+            if(!validacionCoincidencia){productosSobrevivientes.add(objProducto);}
+        }
+        //Al final, tendremos una lista 'productosSobrevivientes' solo con los productos que NO se quieren eliminar
+
+        //Le asignamos la nueva lista de productos a carrito
+        objCarrito.setListProductos(productosSobrevivientes);
+
+        //Calculamos el nuevo total del carrito
+        objCarrito.setTotal(calcularTotalCarrito(productosSobrevivientes));
+
+        //Guardamos cambios en database
+        carritoRepo.save(objCarrito);
+
+        return buildCarritoResponse(objCarrito);
+    }
+
 }

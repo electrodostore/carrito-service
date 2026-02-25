@@ -3,6 +3,7 @@ package com.electrodostore.carrito_service.controller;
 import com.electrodostore.carrito_service.dto.CarritoCreadoResponseDto;
 import com.electrodostore.carrito_service.dto.CarritoResponseDto;
 import com.electrodostore.carrito_service.dto.ProductoAgregarDto;
+import com.electrodostore.carrito_service.dto.ProductoCambiarCantidadDto;
 import com.electrodostore.carrito_service.service.ICarritoService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -44,4 +45,11 @@ public class CarritoController {
     public ResponseEntity<CarritoResponseDto> eliminarProductos(@PathVariable Long carritoId, @PathVariable Long productoEliminarId){
        return ResponseEntity.ok(carritoService.deleteProductos(carritoId, productoEliminarId));
    }
+
+   //Es un método patch ya que estamos actualizando parcialmente un recurso (producto) dentro del carrito
+   @PatchMapping("/{carritoId}/actualizar-cantidad-producto")
+    public ResponseEntity<CarritoResponseDto> cambiarCantidadProducto(@PathVariable Long carritoId, @RequestBody ProductoCambiarCantidadDto productoNuevaCantidad){
+       return ResponseEntity.ok(carritoService.cambiarCantidadProducto(carritoId, productoNuevaCantidad));
+   }
+
 }

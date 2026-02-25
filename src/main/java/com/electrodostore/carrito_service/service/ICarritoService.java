@@ -22,5 +22,5 @@ public interface ICarritoService {
     CarritoResponseDto agregarProductos(Long carritoId, List<ProductoAgregarDto> productosAgregar);
 
     //Método para eliminar uno o varios productos de un determinado carrito
-    CarritoResponseDto deleteProductos(Long carritoId, List<Long> productosEliminarIds);
+    CarritoResponseDto deleteProductos(Long carritoId, Long productoEliminarId);
 }

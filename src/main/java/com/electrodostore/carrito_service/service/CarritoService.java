@@ -297,38 +297,27 @@ public class CarritoService implements ICarritoService {
 
     @Transactional
     @Override
-    public CarritoResponseDto deleteProductos(Long carritoId, List<Long> productosEliminarIds) {
+    public CarritoResponseDto deleteProductos(Long carritoId, Long productoEliminarId) {
         //Buscamos carrito para verificar que existe
         Carrito objCarrito = findCarrito(carritoId);
 
-        //Lista que va a almacenar los productos que NO se quieren eliminar
-        //La idea es reconstruir la lista de productos excluyendo a los productos que se quieren a eliminar
-        Set<ProductoSnapshot> productosSobrevivientes = new LinkedHashSet<>();
+        //Clonamos la lista de productos del carrito
+        //La idea es encontrar el producto que se quiere eliminar y sacarlo de esta lista
+        Set<ProductoSnapshot> productosSobrevivientes = objCarrito.getListProductos();
 
-        //Recorremos los productos registrados en el carrito para encontrar los que se van a eliminar
+        //Recorremos los productos registrados en el carrito para encontrar el que se va a eliminar
         for(ProductoSnapshot objProducto: objCarrito.getListProductos()){
 
-            //Creamos variable auxiliar  que me ayuda a saber si se encontró o no coincidencia
-            boolean validacionCoincidencia = false;
+            //Si encontramos que el ID del producto registrado es igual al ID del producto que se mandó a eliminar, COINCIDENCIA ENCONTRADA
+            if(objProducto.getProductId().equals(productoEliminarId)){
+                //Sacamos el producto de la lista auxiliar de productos
+                productosSobrevivientes.remove(objProducto);
 
-            //Ahora recorremos los ids de los productos que se mandaron a eliminar para poder encontrar coincidencias
-            for(Long productoId: productosEliminarIds){
-
-                //Si encontramos que el ID del producto registrado es igual a uno de los ids que se mandaron a eliminar, COINCIDENCIA ENCONTRADA
-                if(objProducto.getProductId().equals(productoId)){
-                    //Se guarda la confirmación en la variable auxiliar
-                    validacionCoincidencia = true;
-
-                    //Cuando encontremos coincidencia ya no tiene sentido seguir buscando
-                    break;
-                }
+                //Cuando encontremos la coincidencia, ya no tiene sentido seguir buscando
+                break;
             }
-
-            //Si la variable auxiliar = false --> No se encontró coincidencia, luego la negación de esta va a ser true
-            //Si la negación es true, podemos agregar el producto a los objetos que no se van a eliminar
-            if(!validacionCoincidencia){productosSobrevivientes.add(objProducto);}
         }
-        //Al final, tendremos una lista 'productosSobrevivientes' solo con los productos que NO se quieren eliminar
+        //Al final, tendremos una lista de productos sin el producto que se mandó a eliminar
 
         //Le asignamos la nueva lista de productos a carrito
         objCarrito.setListProductos(productosSobrevivientes);

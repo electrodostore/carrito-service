@@ -40,8 +40,8 @@ public class CarritoController {
    }
 
    //Es un método DELETE ya que se está eliminando un recurso (productos) dentro del carrito
-   @DeleteMapping("/eliminar-productos/{carritoId}")
-    public ResponseEntity<CarritoResponseDto> eliminarProductos(@PathVariable Long carritoId, @RequestBody List<Long> productosEliminarIds){
-       return ResponseEntity.ok(carritoService.deleteProductos(carritoId, productosEliminarIds));
+   @DeleteMapping("/{carritoId}/eliminar-producto/{productoEliminarId}")
+    public ResponseEntity<CarritoResponseDto> eliminarProductos(@PathVariable Long carritoId, @PathVariable Long productoEliminarId){
+       return ResponseEntity.ok(carritoService.deleteProductos(carritoId, productoEliminarId));
    }
 }

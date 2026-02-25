@@ -331,4 +331,44 @@ public class CarritoService implements ICarritoService {
         return buildCarritoResponse(objCarrito);
     }
 
+    @Transactional
+    @Override
+    public CarritoResponseDto cambiarCantidadProducto(Long carritoId, ProductoCambiarCantidadDto productoNuevaCantidad){
+        //Buscamos carrito para confirmar existencia
+        Carrito objCarrito = findCarrito(carritoId);
+
+        //Verificamos si la nueva cantidad que se quiere agregar está dentro de los límites del stock del producto
+        productoIntegration.verificarProductoStock(
+                productoNuevaCantidad.getProductId(), productoNuevaCantidad.getNewQuantity()
+        );
+
+        //Recorremos la lista de productos del carrito para encontrar al que se le va a modificar la cantidad
+        for(ProductoSnapshot objProducto: objCarrito.getListProductos()){
+
+            //Si encontramos el producto -> Modificamos los parámetros del producto
+            if(objProducto.getProductId().equals(productoNuevaCantidad.getProductId())){
+
+                //Modificamos cantidad comprada
+                objProducto.setPurchasedQuantity(productoNuevaCantidad.getNewQuantity());
+
+                //Modificamos el subtotal
+                //Como el precio es formato BigDecimal toca convertir la nueva en un objeto de esa clase y usar el método de multiplicación correspondiente
+                objProducto.setSubTotal(objProducto.getProductPrice().multiply(BigDecimal.valueOf(productoNuevaCantidad.getNewQuantity())));
+
+                //Cuando encontremos la coincidencia, no tiene sentido seguir buscando
+                break;
+            }
+        }
+
+        //Recalculamos el total del carrito con el nuevo subtotal del producto que se le cambió la cantidad
+        objCarrito.setTotal(
+                calcularTotalCarrito(objCarrito.getListProductos())
+        );
+
+        //Actualizamos en base de datos
+        carritoRepo.save(objCarrito);
+
+        return buildCarritoResponse(objCarrito);
+    }
+
 }

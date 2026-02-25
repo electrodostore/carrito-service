@@ -3,6 +3,7 @@ package com.electrodostore.carrito_service.service;
 import com.electrodostore.carrito_service.dto.CarritoCreadoResponseDto;
 import com.electrodostore.carrito_service.dto.CarritoResponseDto;
 import com.electrodostore.carrito_service.dto.ProductoAgregarDto;
+import com.electrodostore.carrito_service.dto.ProductoCambiarCantidadDto;
 
 import java.util.List;
 
@@ -23,4 +24,7 @@ public interface ICarritoService {
 
     //Método para eliminar uno o varios productos de un determinado carrito
     CarritoResponseDto deleteProductos(Long carritoId, Long productoEliminarId);
+
+    //Método que se encarga de cambiar la cantidad que se quería comprar de un producto por una nueva en un determinado carrito
+    CarritoResponseDto cambiarCantidadProducto(Long carritoId, ProductoCambiarCantidadDto productoNuevaCantidad);
 }

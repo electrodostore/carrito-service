@@ -202,6 +202,22 @@ public class CarritoService implements ICarritoService {
                 objCliente.getClientDocument(), objCliente.getClientAddress());
     }
 
+    //Método propio para verificar si un producto está dentro de un determinado carrito
+    private boolean validarProductoEnCarrito(Set<ProductoSnapshot> productosCarrito, Long productoId){
+        //Recorremos la lista de productos del carrito
+        for(ProductoSnapshot objProducto: productosCarrito){
+
+            //Comparamos el ID de cada producto con el ID del producto que se quiere consultar para encontrar coincidencia
+            if(objProducto.getProductId().equals(productoId)){
+                //Si encontramos coincidencia, quiere decir que el producto si existe dentro del carrito, luego retornamos true
+                return true;
+            }
+        }
+
+        //Si sale del bucle sin encontrar coincidencia, el producto no está, luego retornamos false
+        return false;
+    }
+
     //Método propio para sacar una instancia de la clase DTO que me expone los datos de un carrito al cliente
     private CarritoResponseDto buildCarritoResponse(Carrito objCarrito) {
         //Sacamos objeto para la transferencia de los datos de un carrito (DTO)
@@ -301,6 +317,13 @@ public class CarritoService implements ICarritoService {
         //Buscamos carrito para verificar que existe
         Carrito objCarrito = findCarrito(carritoId);
 
+        //Validamos que el producto si exista en el carrito, si no -> excepción
+        if(!(
+                validarProductoEnCarrito(objCarrito.getListProductos(), productoEliminarId))
+        ){
+            throw new ProductoNotFoundException("No existe producto con id: " +productoEliminarId + " en el carrito");
+        }
+
         //Clonamos la lista de productos del carrito
         //La idea es encontrar el producto que se quiere eliminar y sacarlo de esta lista
         Set<ProductoSnapshot> productosSobrevivientes = objCarrito.getListProductos();
@@ -337,10 +360,18 @@ public class CarritoService implements ICarritoService {
         //Buscamos carrito para confirmar existencia
         Carrito objCarrito = findCarrito(carritoId);
 
+        //Validamos que el producto si exista en el carrito, si no -> excepción
+        if(!(
+                validarProductoEnCarrito(objCarrito.getListProductos(), productoNuevaCantidad.getProductId()))
+        ){
+            throw new ProductoNotFoundException("No existe producto con id: " + productoNuevaCantidad.getProductId() + " en el carrito");
+        }
+
         //Verificamos si la nueva cantidad que se quiere agregar está dentro de los límites del stock del producto
         productoIntegration.verificarProductoStock(
                 productoNuevaCantidad.getProductId(), productoNuevaCantidad.getNewQuantity()
         );
+
 
         //Recorremos la lista de productos del carrito para encontrar al que se le va a modificar la cantidad
         for(ProductoSnapshot objProducto: objCarrito.getListProductos()){

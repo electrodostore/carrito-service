@@ -7,6 +7,8 @@ import com.electrodostore.carrito_service.integration.cliente.ClienteIntegration
 import com.electrodostore.carrito_service.integration.cliente.dto.ClienteIntegrationDto;
 import com.electrodostore.carrito_service.integration.producto.ProductoIntegrationService;
 import com.electrodostore.carrito_service.integration.producto.dto.ProductoIntegrationDto;
+import com.electrodostore.carrito_service.integration.venta.dto.ProductoIntegrationRequestDto;
+import com.electrodostore.carrito_service.integration.venta.dto.VentaIntegrationResponseDto;
 import com.electrodostore.carrito_service.model.Carrito;
 import com.electrodostore.carrito_service.model.ClienteSnapshot;
 import com.electrodostore.carrito_service.model.ProductoSnapshot;
@@ -41,16 +43,22 @@ public class CarritoService implements ICarritoService {
     private List<ProductoIntegrationDto> findProductos(List<Long> productosIds) {
 
         //En caso de que no se mande ningún ID de producto en la lista, no podemos hacer la integración
-        if (productosIds.isEmpty()) {throw new ProductoNotFoundException("Ningún producto fue mandado a consultar");}
+        if (productosIds.isEmpty()) {
+            throw new ProductoNotFoundException("Ningún producto fue mandado a consultar");
+        }
 
         //Si solo se manda a consultar un producto, no es necesario usar el método de integración que consulta una lista de estos
-        if (productosIds.size() == 1) {return List.of(productoIntegration.findProducto(productosIds.get(0)));}
+        if (productosIds.size() == 1) {
+            return List.of(productoIntegration.findProducto(productosIds.get(0)));
+        }
 
         //Si son varios los productos sacamos la lista de estos
         List<ProductoIntegrationDto> productosIntegration = productoIntegration.findProductos(productosIds);
 
         //Comparamos longitudes de la lista de ids con la lista de productos que llegaron en la integración para determinar si llegaron todos
-        if (productosIntegration.size() < productosIds.size()) {throw new ProductoNotFoundException("Uno o varios productos no fueron encontrado");}
+        if (productosIntegration.size() < productosIds.size()) {
+            throw new ProductoNotFoundException("Uno o varios productos no fueron encontrado");
+        }
 
         //Finalmente, si todo está ok -> Retornamos lista
         return productosIntegration;
@@ -70,22 +78,22 @@ public class CarritoService implements ICarritoService {
     }
 
     /*Método propio para filtrar los productos que ya se habían agregado al carrito para que en vez de agregarlos otra vez
-    *  se le sume la cantidad y el subtotal al producto que ya estaba registrado dentro del carrito*/
-    private List<ProductoSnapshot> filtrarProductosExistentes(Carrito carrito, List<ProductoSnapshot> productosAgregar){
+     *  se le sume la cantidad y el subtotal al producto que ya estaba registrado dentro del carrito*/
+    private List<ProductoSnapshot> filtrarProductosExistentes(Carrito carrito, List<ProductoSnapshot> productosAgregar) {
         //Aquí se van a almacenar los productos que no estén ya dentro del carrito
         List<ProductoSnapshot> productosNuevos = new ArrayList<>();
 
         //Se recorre la lista de los productos que se quieren agregar al carrito para irlos comparando con los que ya estaban
-        for(ProductoSnapshot productoAgregar: productosAgregar){
+        for (ProductoSnapshot productoAgregar : productosAgregar) {
 
             //Creamos variable booleana para saber, una vez se salga del bucle siguiente, si se encontró o no coincidencia con productoAgregar
-            boolean validacionCoincidencia  = false;
+            boolean validacionCoincidencia = false;
 
             //Recorremos ahora la lista de los productos que están dentro del carrito para poder comparar
-            for(ProductoSnapshot productoCarrito: carrito.getListProductos()){
+            for (ProductoSnapshot productoCarrito : carrito.getListProductos()) {
 
                 //Si encontramos coincidencia entre el producto que se quiere agregar y uno que ya estaba en el carrito, hacemos los cambios en el carrito
-                if(productoAgregar.getProductId().equals(productoCarrito.getProductId())){
+                if (productoAgregar.getProductId().equals(productoCarrito.getProductId())) {
 
                     //A la cantidad comprada que ya estaba registrada se le suma la cantidad nueva que se quiere agregar
                     productoCarrito.setPurchasedQuantity(
@@ -107,7 +115,9 @@ public class CarritoService implements ICarritoService {
             }
 
             //Con la ayuda de validacionCoincidencia determinamos si la salida del bucle fue porque se encontró la coincidencia (true) o no se encontró (false)
-            if(!validacionCoincidencia){productosNuevos.add(productoAgregar);}
+            if (!validacionCoincidencia) {
+                productosNuevos.add(productoAgregar);
+            }
         }
 
         //Al final, retornamos la lista con los productos que si son realmente nuevos
@@ -170,11 +180,29 @@ public class CarritoService implements ICarritoService {
         return listProductosResponse;
     }
 
+    /*Método propio que construye la lista de productos que viajaran en la request a venta-service para registrar una
+       venta a partir de la lista de productos Snapshot registrada dentro del carrito*/
+    private List<ProductoIntegrationRequestDto> productoSnapshotToIntegration(List<ProductoSnapshot> productosSnapshot) {
+        //Lista que va a contener los productos ya listos para hacer la petición a venta-service
+        List<ProductoIntegrationRequestDto> productosIntegration = new ArrayList<>();
+
+        //Recorremos la lista de Snapshot para construir los integration
+        for (ProductoSnapshot productoSnapshot : productosSnapshot) {
+            productosIntegration.add(
+                    //Construimos los objetos integration a partir de los datos de los Snapshot
+                    new ProductoIntegrationRequestDto(productoSnapshot.getProductId(),
+                            productoSnapshot.getPurchasedQuantity()));
+        }
+
+        //Finalmente, devolvemos la lista construida de productos integration
+        return productosIntegration;
+    }
+
     //Método propio para calcular el total de un carrito a partir de los productos que tenga dentro
-    private BigDecimal calcularTotalCarrito(Set<ProductoSnapshot> listProductos){
+    private BigDecimal calcularTotalCarrito(Set<ProductoSnapshot> listProductos) {
         BigDecimal total = BigDecimal.ZERO;
 
-        for(ProductoSnapshot objProducto: listProductos){
+        for (ProductoSnapshot objProducto : listProductos) {
             //Para sumar BigDecimal debe ser por el método add() de la clase
             total = total.add(objProducto.getSubTotal());
         }
@@ -203,12 +231,12 @@ public class CarritoService implements ICarritoService {
     }
 
     //Método propio para verificar si un producto está dentro de un determinado carrito
-    private boolean validarProductoEnCarrito(Set<ProductoSnapshot> productosCarrito, Long productoId){
+    private boolean validarProductoEnCarrito(Set<ProductoSnapshot> productosCarrito, Long productoId) {
         //Recorremos la lista de productos del carrito
-        for(ProductoSnapshot objProducto: productosCarrito){
+        for (ProductoSnapshot objProducto : productosCarrito) {
 
             //Comparamos el ID de cada producto con el ID del producto que se quiere consultar para encontrar coincidencia
-            if(objProducto.getProductId().equals(productoId)){
+            if (objProducto.getProductId().equals(productoId)) {
                 //Si encontramos coincidencia, quiere decir que el producto si existe dentro del carrito, luego retornamos true
                 return true;
             }
@@ -284,7 +312,7 @@ public class CarritoService implements ICarritoService {
 
         //sacamos los ids de los productos que se quieren agregar y buscamos los productos
         List<ProductoIntegrationDto> productosIntegration = findProductos(
-                 sacarIdsProductos(productosAgregar)
+                sacarIdsProductos(productosAgregar)
         );
 
         //Con los datos de los productos que se integraron construimos los Snapshots para persistirlos en la base de datos
@@ -295,7 +323,7 @@ public class CarritoService implements ICarritoService {
         List<ProductoSnapshot> productosNuevos = filtrarProductosExistentes(objCarrito, productosSnapshot);
 
         //Agregamos los nuevos productos al carrito
-        for(ProductoSnapshot productoSnapshot: productosNuevos){
+        for (ProductoSnapshot productoSnapshot : productosNuevos) {
             objCarrito.getListProductos().add(productoSnapshot);
         }
 
@@ -318,10 +346,10 @@ public class CarritoService implements ICarritoService {
         Carrito objCarrito = findCarrito(carritoId);
 
         //Validamos que el producto si exista en el carrito, si no -> excepción
-        if(!(
+        if (!(
                 validarProductoEnCarrito(objCarrito.getListProductos(), productoEliminarId))
-        ){
-            throw new ProductoNotFoundException("No existe producto con id: " +productoEliminarId + " en el carrito");
+        ) {
+            throw new ProductoNotFoundException("No existe producto con id: " + productoEliminarId + " en el carrito");
         }
 
         //Clonamos la lista de productos del carrito
@@ -329,10 +357,10 @@ public class CarritoService implements ICarritoService {
         Set<ProductoSnapshot> productosSobrevivientes = objCarrito.getListProductos();
 
         //Recorremos los productos registrados en el carrito para encontrar el que se va a eliminar
-        for(ProductoSnapshot objProducto: objCarrito.getListProductos()){
+        for (ProductoSnapshot objProducto : objCarrito.getListProductos()) {
 
             //Si encontramos que el ID del producto registrado es igual al ID del producto que se mandó a eliminar, COINCIDENCIA ENCONTRADA
-            if(objProducto.getProductId().equals(productoEliminarId)){
+            if (objProducto.getProductId().equals(productoEliminarId)) {
                 //Sacamos el producto de la lista auxiliar de productos
                 productosSobrevivientes.remove(objProducto);
 
@@ -356,14 +384,14 @@ public class CarritoService implements ICarritoService {
 
     @Transactional
     @Override
-    public CarritoResponseDto cambiarCantidadProducto(Long carritoId, ProductoCambiarCantidadDto productoNuevaCantidad){
+    public CarritoResponseDto cambiarCantidadProducto(Long carritoId, ProductoCambiarCantidadDto productoNuevaCantidad) {
         //Buscamos carrito para confirmar existencia
         Carrito objCarrito = findCarrito(carritoId);
 
         //Validamos que el producto si exista en el carrito, si no -> excepción
-        if(!(
+        if (!(
                 validarProductoEnCarrito(objCarrito.getListProductos(), productoNuevaCantidad.getProductId()))
-        ){
+        ) {
             throw new ProductoNotFoundException("No existe producto con id: " + productoNuevaCantidad.getProductId() + " en el carrito");
         }
 
@@ -374,10 +402,10 @@ public class CarritoService implements ICarritoService {
 
 
         //Recorremos la lista de productos del carrito para encontrar al que se le va a modificar la cantidad
-        for(ProductoSnapshot objProducto: objCarrito.getListProductos()){
+        for (ProductoSnapshot objProducto : objCarrito.getListProductos()) {
 
             //Si encontramos el producto -> Modificamos los parámetros del producto
-            if(objProducto.getProductId().equals(productoNuevaCantidad.getProductId())){
+            if (objProducto.getProductId().equals(productoNuevaCantidad.getProductId())) {
 
                 //Modificamos cantidad comprada
                 objProducto.setPurchasedQuantity(productoNuevaCantidad.getNewQuantity());
@@ -401,5 +429,4 @@ public class CarritoService implements ICarritoService {
 
         return buildCarritoResponse(objCarrito);
     }
-
 }

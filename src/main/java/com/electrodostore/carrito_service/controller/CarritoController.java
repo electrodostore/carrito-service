@@ -4,7 +4,9 @@ import com.electrodostore.carrito_service.dto.CarritoCreadoResponseDto;
 import com.electrodostore.carrito_service.dto.CarritoResponseDto;
 import com.electrodostore.carrito_service.dto.ProductoAgregarDto;
 import com.electrodostore.carrito_service.dto.ProductoCambiarCantidadDto;
+import com.electrodostore.carrito_service.integration.venta.dto.VentaIntegrationResponseDto;
 import com.electrodostore.carrito_service.service.ICarritoService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -52,4 +54,9 @@ public class CarritoController {
        return ResponseEntity.ok(carritoService.cambiarCantidadProducto(carritoId, productoNuevaCantidad));
    }
 
+   @PostMapping("/comprar-carrito/{carritoId}")
+    public ResponseEntity<VentaIntegrationResponseDto> comprarCarrito(@PathVariable Long carritoId){
+       return ResponseEntity.status(HttpStatus.CREATED)
+               .body(carritoService.comprarCarrito(carritoId));
+   }
 }

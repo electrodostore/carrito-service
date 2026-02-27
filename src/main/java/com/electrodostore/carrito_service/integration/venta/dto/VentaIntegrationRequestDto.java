@@ -17,7 +17,7 @@ public class VentaIntegrationRequestDto {
 
     private LocalDate date;
     //Lista de cada id y cantidad del producto en el carrito que se registrará en la venta
-    private List<ProductoIntegrationDto> productsList = new ArrayList<>();
+    private List<ProductoIntegrationRequestDto> productsList = new ArrayList<>();
     //Id del cliente dueño de la venta
     private Long clientId;
 }

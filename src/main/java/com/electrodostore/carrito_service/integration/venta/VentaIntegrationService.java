@@ -21,7 +21,7 @@ public class VentaIntegrationService {
 
     //Método protegido por Circuit-Breaker encargado de registrar una venta en venta-service
     //Se le asocia un método fallback para cuando ocurra algún fallo tener un plan-B de como actuar
-    @CircuitBreaker(name = "venta-service", fallbackMethod = "createVentaFallback")
+    @CircuitBreaker(name = "venta-service", fallbackMethod = "fallbackCreateVenta")
     @Retry(name = "venta-service") //Definimos que reintente la petición en caso de fallos
     public VentaIntegrationResponseDto createVenta(VentaIntegrationRequestDto ventaNueva){
         return ventaClient.createVenta(ventaNueva);

@@ -8,9 +8,11 @@ import com.electrodostore.carrito_service.integration.venta.dto.VentaIntegration
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 //Clase donde se van a definir los métodos protegidos por Circuit-Breaker que harán peticiones a venta-service con ayuda del FeignClient que se creó
 @Slf4j  //@Slf4j tiene un logger con el que agregaremos warnings o errores al log del proyecto
+@Service
 public class VentaIntegrationService {
 
     //Inyección de dependencia por constructor para el FeignClient que hace peticiones a venta-service

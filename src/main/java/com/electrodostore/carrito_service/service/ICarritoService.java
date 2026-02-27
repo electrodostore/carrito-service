@@ -4,6 +4,7 @@ import com.electrodostore.carrito_service.dto.CarritoCreadoResponseDto;
 import com.electrodostore.carrito_service.dto.CarritoResponseDto;
 import com.electrodostore.carrito_service.dto.ProductoAgregarDto;
 import com.electrodostore.carrito_service.dto.ProductoCambiarCantidadDto;
+import com.electrodostore.carrito_service.integration.venta.dto.VentaIntegrationResponseDto;
 
 import java.util.List;
 
@@ -27,4 +28,7 @@ public interface ICarritoService {
 
     //Método que se encarga de cambiar la cantidad que se quería comprar de un producto por una nueva en un determinado carrito
     CarritoResponseDto cambiarCantidadProducto(Long carritoId, ProductoCambiarCantidadDto productoNuevaCantidad);
+
+    //Método para finalmente, después de todo el proceso, se compré el carrito y se registré como venta en venta-service
+    VentaIntegrationResponseDto comprarCarrito(Long carritoId);
 }

@@ -46,6 +46,6 @@ public class VentaIntegrationService {
 
         /*Si la excepción que activó el fallback no es excepción de dominio, entonces lanzamos el SERVICE_UNAVAILABLE indicando
            el error de infraestructura*/
-        throw new ServiceUnavailable("No fue posible establecer la comunicación con venta-service");
+        throw new ServiceUnavailable("No se pudo completar la compra, intente de nuevo más tarde");
     }
 }

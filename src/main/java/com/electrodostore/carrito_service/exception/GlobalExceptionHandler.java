@@ -64,4 +64,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(buildExceptionBody(HttpStatus.NOT_FOUND, ex.getMessage(), ex.getErrorCode().name()));
     }
+
+    @ExceptionHandler(CarritoPurchasedException.class)
+    public ResponseEntity<Map<String, Object>> handlerCarritoPurchased(CarritoPurchasedException ex){
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(buildExceptionBody(HttpStatus.CONFLICT, ex.getMessage(), ex.getErrorCode().name()));
+    }
 }

@@ -14,6 +14,6 @@ public class CarritoPurchasedException extends BusinessException {
         super(message);
 
         //Le asignamos el correspondiente errorCode del conjunto de valores en el enum CarritoErrorCode
-        this.errorCode = CarritoErrorCode.PURCHASED_CARRITO_STATUS;
+        this.errorCode = CarritoErrorCode.STATUS_PURCHASED_CARRITO;
     }
 }

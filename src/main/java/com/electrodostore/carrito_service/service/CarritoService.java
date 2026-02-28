@@ -2,6 +2,7 @@ package com.electrodostore.carrito_service.service;
 
 import com.electrodostore.carrito_service.dto.*;
 import com.electrodostore.carrito_service.exception.CarritoNotFoundException;
+import com.electrodostore.carrito_service.exception.CarritoPurchasedException;
 import com.electrodostore.carrito_service.exception.ProductoNotFoundException;
 import com.electrodostore.carrito_service.integration.cliente.ClienteIntegrationService;
 import com.electrodostore.carrito_service.integration.cliente.dto.ClienteIntegrationDto;
@@ -243,6 +244,13 @@ public class CarritoService implements ICarritoService {
 
         //Si sale del bucle sin encontrar coincidencia, el producto no está, luego retornamos false
         return false;
+    }
+
+    /*Método propio para validar el estado de un carrito. Cuando quieran hacer una operación sobre este, esta no podrá
+     ser realizada si el estado del carrito es PURCHASED, por lo que lo indicamos con una excepción.
+     Si el estado es diferente le permitimos hacer la operación sin lanzar nada*/
+    private void validarEstadoCarrito(Carrito objCarrito){
+        if(objCarrito.getStatus().equals(PURCHASED)){throw new CarritoPurchasedException("No se puede operar sobre un carrito comprado");}
     }
 
     //Método propio para sacar una instancia de la clase DTO que me expone los datos de un carrito al cliente

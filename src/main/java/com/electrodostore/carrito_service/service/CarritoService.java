@@ -317,6 +317,9 @@ public class CarritoService implements ICarritoService {
         //Buscamos el carrito para confirmamos que existe
         Carrito objCarrito = findCarrito(carritoId);
 
+        //Validamos que el estado del carrito no sea PURCHASED, en caso de que sí -> Excepción
+        validarEstadoCarrito(objCarrito);
+
         //sacamos los ids de los productos que se quieren agregar y buscamos los productos
         List<ProductoIntegrationDto> productosIntegration = findProductos(
                  sacarIdsProductos(productosAgregar)
@@ -351,6 +354,9 @@ public class CarritoService implements ICarritoService {
     public CarritoResponseDto deleteProductos(Long carritoId, Long productoEliminarId) {
         //Buscamos carrito para verificar que existe
         Carrito objCarrito = findCarrito(carritoId);
+
+        //Validamos que el estado del carrito no sea PURCHASED, en caso de que sí -> Excepción
+        validarEstadoCarrito(objCarrito);
 
         //Validamos que el producto si exista en el carrito, si no -> excepción
         if(!(
@@ -394,6 +400,9 @@ public class CarritoService implements ICarritoService {
     public CarritoResponseDto cambiarCantidadProducto(Long carritoId, ProductoCambiarCantidadDto productoNuevaCantidad){
         //Buscamos carrito para confirmar existencia
         Carrito objCarrito = findCarrito(carritoId);
+
+        //Validamos que el estado del carrito no sea PURCHASED, en caso de que sí -> Excepción
+        validarEstadoCarrito(objCarrito);
 
         //Validamos que el producto si exista en el carrito, si no -> excepción
         if(!(
@@ -442,6 +451,9 @@ public class CarritoService implements ICarritoService {
     public VentaIntegrationResponseDto comprarCarrito(Long carritoId) {
         //Primero buscamos el carrito para verificar existencia
         Carrito objCarrito = findCarrito(carritoId);
+
+        //Validamos que el estado del carrito no sea PURCHASED, en caso de que sí -> Excepción
+        validarEstadoCarrito(objCarrito);
 
         //Construimos la lista de productos, que van a estar en la request, a partir de los que están registrados en el carrito
         List<ProductoIntegrationRequestDto> productosRequestVenta = productoSnapshotToIntegration(

@@ -1,6 +1,7 @@
 package com.electrodostore.carrito_service.integration.producto.client;
 
 import com.electrodostore.carrito_service.integration.producto.dto.ProductoIntegrationDto;
+import com.electrodostore.carrito_service.integration.producto.dto.ProductoIntegrationStockDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,8 +23,8 @@ public interface ProductoFeignClient {
     @GetMapping("/productos/{productoId}")
     ProductoIntegrationDto findProducto(@PathVariable Long productoId);
 
-    //Descripción del método que verifica si el stock de un producto es suficiente basado en la cantidad que se desea comprar
-    @PostMapping("/productos/verificar-stock/{productoId}")
-    void verificarStockProducto(@PathVariable Long productoId, @RequestBody int cantidadVerificar);
+    //Descripción del método que verifica si el stock de una lista de productos es suficiente para cubrir la cantidad que se desea comprar de estos
+    @PostMapping("/productos/verificar-stock")
+    void verificarStockProducto(@RequestBody List<ProductoIntegrationStockDto> productosValidarStock);
 
 }

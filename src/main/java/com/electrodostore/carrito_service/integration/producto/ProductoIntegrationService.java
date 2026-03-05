@@ -4,6 +4,7 @@ import com.electrodostore.carrito_service.exception.BusinessException;
 import com.electrodostore.carrito_service.exception.ServiceUnavailable;
 import com.electrodostore.carrito_service.integration.producto.client.ProductoFeignClient;
 import com.electrodostore.carrito_service.integration.producto.dto.ProductoIntegrationDto;
+import com.electrodostore.carrito_service.integration.producto.dto.ProductoIntegrationStockDto;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListResourceBundle;
 
 @Slf4j //@Slf4j contiene un logger para lanzar errores o warnings informativos al log del proyecto
 //Servicio donde se definen los métodos protegidos por Circuit-Breaker que harán diferentes peticiones a producto-service por medio del cliente Feign
@@ -78,11 +80,11 @@ public class ProductoIntegrationService {
         throw new ServiceUnavailable("No fue posible establecer la comunicación con producto-service. Intente de nuevo más tarde");
     }
 
-    /*Método protegido que usa el FeignClient para consultar en producto-service si el stock de un determinado producto
-       es suficiente para la cantidad que se desea comprar de este*/
+    /*Método protegido que usa el FeignClient para consultar en producto-service si el stock de una lista de productos
+       es suficiente para la cantidad que se desea comprar de estos*/
     @CircuitBreaker(name = "producto-service", fallbackMethod = "fallbackVerificarProductoStock")
-    public void verificarProductoStock(Long productoId, int cantidadVerificar){
-        productoClient.verificarStockProducto(productoId, cantidadVerificar);
+    public void verificarProductosStock(List<ProductoIntegrationStockDto> productosValidarStock){
+        productoClient.verificarStockProductos(productosValidarStock);
     }
 
     //Fallback del método verificarProductoStock

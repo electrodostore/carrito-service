@@ -25,6 +25,6 @@ public interface ProductoFeignClient {
 
     //Descripción del método que verifica si el stock de una lista de productos es suficiente para cubrir la cantidad que se desea comprar de estos
     @PostMapping("/productos/verificar-stock")
-    void verificarStockProducto(@RequestBody List<ProductoIntegrationStockDto> productosValidarStock);
+    void verificarStockProductos(@RequestBody List<ProductoIntegrationStockDto> productosValidarStock);
 
 }

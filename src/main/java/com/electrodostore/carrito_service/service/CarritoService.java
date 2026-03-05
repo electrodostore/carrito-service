@@ -8,6 +8,7 @@ import com.electrodostore.carrito_service.integration.cliente.ClienteIntegration
 import com.electrodostore.carrito_service.integration.cliente.dto.ClienteIntegrationDto;
 import com.electrodostore.carrito_service.integration.producto.ProductoIntegrationService;
 import com.electrodostore.carrito_service.integration.producto.dto.ProductoIntegrationDto;
+import com.electrodostore.carrito_service.integration.producto.dto.ProductoIntegrationStockDto;
 import com.electrodostore.carrito_service.integration.venta.VentaIntegrationService;
 import com.electrodostore.carrito_service.integration.venta.dto.ProductoIntegrationRequestDto;
 import com.electrodostore.carrito_service.integration.venta.dto.VentaIntegrationRequestDto;
@@ -124,6 +125,29 @@ public class CarritoService implements ICarritoService {
         return productosNuevos;
     }
 
+    //Método propio para construir los DTO que van a viajar en la integración con producto-service para validar stock
+    private List<ProductoIntegrationStockDto> buildProductosIntegration(List<ProductoConCantidadDto> listProductos){
+        //Lista que va a almacenar los DTO
+        List<ProductoIntegrationStockDto> productosIntegration = new ArrayList<>();
+
+        //Recorremos la lista de los productos enviados para construir los DTO a partir de los datos de estos
+        for(ProductoConCantidadDto objProducto: listProductos){
+            //Creamos objeto de DTO de integración con los dos parámetros necesarios para validar el stock (id del Producto y cantidad a validar)
+            productosIntegration.add(new ProductoIntegrationStockDto(objProducto.getProductoId(), objProducto.getCantidad()));
+        }
+
+        return productosIntegration;
+    }
+
+    //Método propio que hace la integración con producto-service para validar el stock de una lista de productos
+    private void validarProductosStock(List<ProductoConCantidadDto> productosValidarStock){
+        //Construimos lista de DTO de integración a partir de los datos de los productos a validar
+        List<ProductoIntegrationStockDto> productosIntegration = buildProductosIntegration(productosValidarStock);
+
+        //Hacemos integración con producto-service
+        productoIntegration.verificarProductosStock(productosIntegration);
+    }
+
     /*Método propio para transferir los datos de una lista de productos (que se integraron desde producto-service a este
          servicio) a una lista de objetos Snapshot para su posterior persistencia en la base de datos*/
     /*Para esto necesitamos la lista de los productos que se integraron (productosIntegration) y la lista con el id la
@@ -140,7 +164,7 @@ public class CarritoService implements ICarritoService {
                 //Comparamos por ID cada producto para encontrar las coincidencias
                 if (objProductoAgregar.getId().equals(objProductoIntegration.getId())) {
                     //Primero verificamos si el stock del producto es suficiente para la cantidad que se quiere comprar
-                    productoIntegration.verificarProductoStock(objProductoIntegration.getId(), objProductoAgregar.getQuantity());
+//                    productoIntegration.verificarProductoStock(objProductoIntegration.getId(), objProductoAgregar.getQuantity());
 
                     //Se calcula el subTotal de cada producto comprado en formato BigDecimal
                     BigDecimal subTotal = objProductoIntegration.getPrice().multiply(BigDecimal.valueOf(objProductoAgregar.getQuantity()));
@@ -412,9 +436,9 @@ public class CarritoService implements ICarritoService {
         }
 
         //Verificamos si la nueva cantidad que se quiere agregar está dentro de los límites del stock del producto
-        productoIntegration.verificarProductoStock(
-                productoNuevaCantidad.getProductId(), productoNuevaCantidad.getNewQuantity()
-        );
+//        productoIntegration.verificarProductoStock(
+//                productoNuevaCantidad.getProductId(), productoNuevaCantidad.getNewQuantity()
+//        );
 
 
         //Recorremos la lista de productos del carrito para encontrar al que se le va a modificar la cantidad

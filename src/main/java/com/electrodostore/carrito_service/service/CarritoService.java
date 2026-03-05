@@ -157,6 +157,10 @@ public class CarritoService implements ICarritoService {
     /*Para esto necesitamos la lista de los productos que se integraron (productosIntegration) y la lista con el id la
      cantidad que se quiere comprar de cada producto (productosAgregados) */
     private List<ProductoSnapshot> productosIntegrationToSnapshot(List<ProductoIntegrationDto> productosIntegration, List<ProductoAgregarDto> productosAgregar) {
+        /*Validamos que el stock de todos los productos que se quieren agregar al carrito, tienen stock suficiente para
+          cubrir la cantidad que se quiere comprar*/
+        validarProductosStock(productosAgregar);
+
         //Lista de Snapshots para los productos que se integraron
         List<ProductoSnapshot> productosSnapshot = new ArrayList<>();
 
@@ -438,9 +442,10 @@ public class CarritoService implements ICarritoService {
         }
 
         //Verificamos si la nueva cantidad que se quiere agregar está dentro de los límites del stock del producto
-//        productoIntegration.verificarProductoStock(
-//                productoNuevaCantidad.getProductId(), productoNuevaCantidad.getNewQuantity()
-//        );
+        validarProductosStock(
+                //Como este método me recibe una lista, creo una a partir del producto
+                List.of(productoNuevaCantidad)
+        );
 
 
         //Recorremos la lista de productos del carrito para encontrar al que se le va a modificar la cantidad

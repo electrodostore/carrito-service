@@ -125,8 +125,10 @@ public class CarritoService implements ICarritoService {
         return productosNuevos;
     }
 
-    //Método propio para construir los DTO que van a viajar en la integración con producto-service para validar stock
-    private List<ProductoIntegrationStockDto> buildProductosIntegration(List<ProductoConCantidadDto> listProductos){
+    //Método propio para construir los DTO que van a viajar en la integración con producto-service para validar stoc
+    /*Para que el método me acepte como parámetro cualquier lista cuyo tipo me implemente una determinada interfaz,
+     * se debe poner en el tipo de esta dentro del parámetro: ? extends interface*/
+    private List<ProductoIntegrationStockDto> buildProductosIntegration(List<? extends ProductoConCantidadDto> listProductos){
         //Lista que va a almacenar los DTO
         List<ProductoIntegrationStockDto> productosIntegration = new ArrayList<>();
 
@@ -140,7 +142,9 @@ public class CarritoService implements ICarritoService {
     }
 
     //Método propio que hace la integración con producto-service para validar el stock de una lista de productos
-    private void validarProductosStock(List<ProductoConCantidadDto> productosValidarStock){
+    /*Para que el método me acepte como parámetro cualquier lista cuyo tipo me implemente una determinada interfaz,
+     * se debe poner en el tipo de esta dentro del parámetro: ? extends interface*/
+    private void validarProductosStock(List<? extends ProductoConCantidadDto> productosValidarStock){
         //Construimos lista de DTO de integración a partir de los datos de los productos a validar
         List<ProductoIntegrationStockDto> productosIntegration = buildProductosIntegration(productosValidarStock);
 
@@ -163,8 +167,6 @@ public class CarritoService implements ICarritoService {
             for (ProductoIntegrationDto objProductoIntegration : productosIntegration) {
                 //Comparamos por ID cada producto para encontrar las coincidencias
                 if (objProductoAgregar.getId().equals(objProductoIntegration.getId())) {
-                    //Primero verificamos si el stock del producto es suficiente para la cantidad que se quiere comprar
-//                    productoIntegration.verificarProductoStock(objProductoIntegration.getId(), objProductoAgregar.getQuantity());
 
                     //Se calcula el subTotal de cada producto comprado en formato BigDecimal
                     BigDecimal subTotal = objProductoIntegration.getPrice().multiply(BigDecimal.valueOf(objProductoAgregar.getQuantity()));

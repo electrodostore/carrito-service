@@ -9,9 +9,18 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 //DTO que se encarga de almacenar el ID de un producto que se le va a modificar la cantidad comprada y la nueva cantidad
-public class ProductoCambiarCantidadDto {
+public class ProductoCambiarCantidadDto implements ProductoConCantidadDto {
 
     private Long productId;
     private Integer newQuantity;
 
+    @Override
+    public Long getProductoId() {
+        return productId;
+    }
+
+    @Override
+    public Integer getCantidad() {
+        return newQuantity;
+    }
 }

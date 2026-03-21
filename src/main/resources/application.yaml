@@ -2,54 +2,5 @@ spring:
   application:
     name: carrito-service
 
-  datasource:
-    username: root
-    password:
-    url: jdbc:mysql://localhost:3306/shopping_carrito?useSSL=false&createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&serverTimezone=UTC
-
-  jpa:
-    hibernate:
-      ddl-auto: update
-
-    database-platform: org.hibernate.dialect.MySQLDialect
-
-    open-in-view: false
-
-resilience4j:
-  circuitbreaker:
-    configs:
-      default:
-        slidingWindowSize: 10
-        minimumNumberOfCalls: 5
-        failureRateThreshold: 50
-        waitDurationInOpenState: 30s
-
-    instances:
-      cliente-service:
-        base-config: default
-        ignore-exceptions:
-          - feign.FeignException.NotFound
-          - com.electrodostore.carrito_service.exception.ClienteNotFoundException
-
-      producto-service:
-        base-config: default
-        ignore-exceptions:
-          - feign.FeignException.NotFound
-          - com.electrodostore.carrito_service.exception.ProductoNotFoundException
-          - com.electrodostore.carrito_service.exception.ProductoStockInsuficienteException
-
-      venta-service:
-        base-config: default
-        ignore-exceptions:
-          - feign.FeignException.NotFound
-          - com.electrodostore.carrito_service.exception.ProductoNotFoundException
-          - com.electrodostore.carrito_service.exception.ProductoStockInsuficienteException
-          - com.electrodostore.carrito_service.exception.ClienteNotFoundException
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka
-
-server:
-  port: ${PORT:8282}
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URL}

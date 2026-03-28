@@ -46,6 +46,16 @@ El carrito está compuesto por:
 
 Se utilizan **snapshots** para evitar dependencias directas con otros servicios en tiempo de lectura.
 
+### 📨 DTOs
+
+| DTO | Uso                                       |
+|---|-------------------------------------------|
+| `CarritoResponseDto` | Salida — detalle completo del carrito     |
+| `CarritoCreoadoResponseDto` | Salida — confirmación de creación y id    |
+| `ProductoAgregarDto` | Entrada — agregar producto al carrito     |
+| `ProductoCambiarCantidadDto` | Entrada — modificar cantidad              |
+| `ProductoResponseDto` | Salida — datos del producto en el carrito |
+| `ClienteResponseDto` | Salida — datos del dueño del carrito      |
 ---
 
 ## 🔗 Endpoints principales
@@ -196,6 +206,7 @@ docker build -t carrito-service .
 ## 💡 Decisiones de diseño
 
 - Uso de snapshots para desacoplar servicios
+- Uso de DTOs para controlar la entrada y salida de datos
 - Separación clara entre lógica de negocio e integración
 - Manejo centralizado de errores
 - Resiliencia en llamadas externas

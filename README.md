@@ -181,6 +181,9 @@ El servicio se registra automáticamente en Eureka Server, permitiendo su descub
 ---
 
 ## ▶️ Ejecución local
+
+> ⚠️ Requiere que **Config Server** y **Eureka Server** estén corriendo antes de iniciar este servicio.
+
 **Con Maven**
 ```bash
 # Corre en el puerto 8282

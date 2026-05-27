@@ -70,4 +70,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(buildExceptionBody(HttpStatus.CONFLICT, ex.getMessage(), ex.getErrorCode().name()));
     }
+    @ExceptionHandler(UnauthorizedOperationException.class)
+    public ResponseEntity<Map<String, Object>> handlerUnauthorizedOperation(UnauthorizedOperationException ex){
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(buildExceptionBody(HttpStatus.FORBIDDEN, ex.getMessage(), ex.getErrorCode().name()));
+    }
+
 }

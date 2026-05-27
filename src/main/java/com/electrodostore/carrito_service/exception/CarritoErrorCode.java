@@ -10,5 +10,6 @@ public enum CarritoErrorCode {
     PRODUCT_NOT_FOUND,  //ErrorCode de ProductoNotFound
     PRODUCT_STOCK_INSUFICIENTE,  //ErrorCode de ProductoStockInsuficienteException
     STATUS_PURCHASED_CARRITO,   //ErrorCode de CarritoPurchasedException
-    SERVICE_UNAVAILABLE  //ErrorCode de ServiceUnavailable
+    SERVICE_UNAVAILABLE,  //ErrorCode de ServiceUnavailable
+    UNAUTHORIZED_OPERATION
 }

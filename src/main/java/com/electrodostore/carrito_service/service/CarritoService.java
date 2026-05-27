@@ -4,6 +4,7 @@ import com.electrodostore.carrito_service.dto.*;
 import com.electrodostore.carrito_service.exception.CarritoNotFoundException;
 import com.electrodostore.carrito_service.exception.CarritoPurchasedException;
 import com.electrodostore.carrito_service.exception.ProductoNotFoundException;
+import com.electrodostore.carrito_service.exception.UnauthorizedOperationException;
 import com.electrodostore.carrito_service.integration.cliente.ClienteIntegrationService;
 import com.electrodostore.carrito_service.integration.cliente.dto.ClienteIntegrationDto;
 import com.electrodostore.carrito_service.integration.producto.ProductoIntegrationService;
@@ -17,6 +18,9 @@ import com.electrodostore.carrito_service.model.Carrito;
 import com.electrodostore.carrito_service.model.ClienteSnapshot;
 import com.electrodostore.carrito_service.model.ProductoSnapshot;
 import com.electrodostore.carrito_service.repository.ICarritoRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -295,6 +299,27 @@ public class CarritoService implements ICarritoService {
         );
     }
 
+    //Extrae la identidad del cliente autenticado y retorna su id
+    private Long getAuthenticatedClientId(){
+        //Busca objeto con la información del token JWT
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        //Saca objeto Principal con todos los claims almacenamos en el token
+        Jwt principal = (Jwt) authentication.getPrincipal();
+
+        //Busca identidad de negocio del usuario
+        Number clientId = principal.getClaim("clientId");
+
+        //Valida que el usuario realmente sea cliente
+        if(clientId == null){throw new UnauthorizedOperationException("El usuario no es cliente, por lo que " +
+                "no puede realizar la operación");
+        }
+
+        return  clientId.longValue();
+
+    }
+
+
     @Transactional(readOnly = true)
     @Override
     public List<CarritoResponseDto> findAllCarritos() {
@@ -320,13 +345,21 @@ public class CarritoService implements ICarritoService {
 
     @Transactional
     @Override
-    public CarritoCreadoResponseDto crearCarrito(Long clienteId) {
+    public CarritoCreadoResponseDto crearCarrito() {
         //Se crea el nuevo carrito que será registrado, en principio, vacío
         Carrito objCarrito = new Carrito();
 
-        //Hacemos la integración del servicio Cliente con Carrito-service consultado el cliente del carrito por su ID
-        //Si se da algún problema en esta integración, este se maneja en la capa "integration"
-        ClienteIntegrationDto cliente = clienteIntegration.findCliente(clienteId);
+        /**
+         * Hacemos la integración del servicio Cliente con Carrito-service
+         * consultado el cliente en el Security Context para
+         * asegurarnos de asignar el carrito al cliente autenticado.
+         *
+         * Si se da algún problema en esta integración,
+         * este se maneja en la capa "integration"
+         */
+        ClienteIntegrationDto cliente = clienteIntegration.findCliente(
+                getAuthenticatedClientId()
+        );
 
         //Preparamos el cliente para su persistencia en la base de datos
         objCarrito.setCliente(clienteIntegrationToSnapshot(cliente));

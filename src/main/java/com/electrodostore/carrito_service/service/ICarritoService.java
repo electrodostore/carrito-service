@@ -17,8 +17,8 @@ public interface ICarritoService {
     //Método para consultar un carrito por su id
     CarritoResponseDto findCarritoResponse(Long carritoId);
 
-    //Crear un carrito asignado a un determinado cliente
-    CarritoCreadoResponseDto crearCarrito(Long clienteId);
+    //Crear carrito asignado al cliente autenticado
+    CarritoCreadoResponseDto crearCarrito();
 
     //Método para agregar uno o varios productos a un determinado carrito
     CarritoResponseDto agregarProductos(Long carritoId, List<ProductoAgregarDto> productosAgregar);

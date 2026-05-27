@@ -32,8 +32,8 @@ public class CarritoController {
     }
 
     @PostMapping
-   public ResponseEntity<CarritoCreadoResponseDto> crearCarrito(@RequestBody Long clienteId){
-       return ResponseEntity.ok(carritoService.crearCarrito(clienteId));
+   public ResponseEntity<CarritoCreadoResponseDto> crearCarrito(){
+       return ResponseEntity.ok(carritoService.crearCarrito());
    }
 
    //Es una operación POST porque estamos guardando o registrando algo (productos) dentro del carrito

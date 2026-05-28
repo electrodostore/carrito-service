@@ -3,12 +3,14 @@ package com.electrodostore.carrito_service.integration.venta;
 import com.electrodostore.carrito_service.exception.BusinessException;
 import com.electrodostore.carrito_service.exception.ServiceUnavailable;
 import com.electrodostore.carrito_service.integration.venta.client.VentaFeignClient;
-import com.electrodostore.carrito_service.integration.venta.dto.VentaIntegrationRequestDto;
+import com.electrodostore.carrito_service.integration.venta.dto.ProductoIntegrationRequestDto;
 import com.electrodostore.carrito_service.integration.venta.dto.VentaIntegrationResponseDto;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 //Clase donde se van a definir los métodos protegidos por Circuit-Breaker que harán peticiones a venta-service con ayuda del FeignClient que se creó
 @Slf4j  //@Slf4j tiene un logger con el que agregaremos warnings o errores al log del proyecto
@@ -23,12 +25,12 @@ public class VentaIntegrationService {
     //Se le asocia un método fallback para cuando ocurra algún fallo tener un plan-B de como actuar
     @CircuitBreaker(name = "venta-service", fallbackMethod = "fallbackCreateVenta")
     @Retry(name = "venta-service") //Definimos que reintente la petición en caso de fallos
-    public VentaIntegrationResponseDto createVenta(VentaIntegrationRequestDto ventaNueva){
-        return ventaClient.createVenta(ventaNueva);
+    public VentaIntegrationResponseDto createVenta(List<ProductoIntegrationRequestDto> listProductos){
+        return ventaClient.createVenta(listProductos);
     }
 
     //Método fallback que se activa cuando hay un fallo en la petición que registra una venta en venta-service
-    public VentaIntegrationResponseDto fallbackCreateVenta(VentaIntegrationRequestDto ventaNueva, Throwable ex){
+    public VentaIntegrationResponseDto fallbackCreateVenta(List<ProductoIntegrationRequestDto> listProductos, Throwable ex){
 
         //Filtramos las excepciones de dominio para evitar ocultarlas con una excepción SERVICE_UNAVAILABLE
         /*Por sintaxis de Resilinece4j el método fallback debe tener la misma firma del método protegido y un último

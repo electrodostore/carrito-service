@@ -12,7 +12,6 @@ import com.electrodostore.carrito_service.integration.producto.dto.ProductoInteg
 import com.electrodostore.carrito_service.integration.producto.dto.ProductoIntegrationStockDto;
 import com.electrodostore.carrito_service.integration.venta.VentaIntegrationService;
 import com.electrodostore.carrito_service.integration.venta.dto.ProductoIntegrationRequestDto;
-import com.electrodostore.carrito_service.integration.venta.dto.VentaIntegrationRequestDto;
 import com.electrodostore.carrito_service.integration.venta.dto.VentaIntegrationResponseDto;
 import com.electrodostore.carrito_service.model.Carrito;
 import com.electrodostore.carrito_service.model.ClienteSnapshot;
@@ -25,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.*;
 
 import static com.electrodostore.carrito_service.model.CarritoStatus.PENDING;
@@ -525,15 +523,10 @@ public class CarritoService implements ICarritoService {
                 new ArrayList<>(objCarrito.getListProductos())
         );
 
-        //Construimos el objeto de Venta para hacer la request
-        VentaIntegrationRequestDto ventaRequest = new VentaIntegrationRequestDto(
-                LocalDate.now(),  //Fecha cuando se hizo la venta
-                productosRequestVenta,  //Productos que se van a comprar
-                objCarrito.getCliente().getClientId() //Cliente que compra
-        );
-
         //Hacemos la request a venta service para registrar la venta
-        VentaIntegrationResponseDto ventaResponse = ventaIntegration.createVenta(ventaRequest);
+        VentaIntegrationResponseDto ventaResponse = ventaIntegration.createVenta(
+                productosRequestVenta
+        );
 
         //Si no hay ningún error en el registro de la venta, cambiamos el estado del carrito a PURCHASED
         objCarrito.setStatus(PURCHASED);

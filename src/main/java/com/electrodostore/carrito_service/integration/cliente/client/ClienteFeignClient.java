@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
         configuration = ClienteFeignConfig.class)  //Definimos la configuración para este FeignClient
 public interface ClienteFeignClient {
 
-    //Descripción del método que busca y trae un cliente desde el servicio cliente
-    @GetMapping("/clientes/{clienteId}")
+    //Consulta los datos de un cliente y los trae si el cliente está habilitado
+    @GetMapping("/clientes/{clienteId}/availables")
     ClienteIntegrationDto findCliente(@PathVariable Long clienteId);
 }

@@ -6,6 +6,9 @@ import com.electrodostore.carrito_service.dto.ProductoAgregarDto;
 import com.electrodostore.carrito_service.dto.ProductoCambiarCantidadDto;
 import com.electrodostore.carrito_service.integration.venta.dto.VentaIntegrationResponseDto;
 import com.electrodostore.carrito_service.service.ICarritoService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -38,19 +41,19 @@ public class CarritoController {
 
    //Es una operación POST porque estamos guardando o registrando algo (productos) dentro del carrito
    @PostMapping("/agregar-productos")
-    public ResponseEntity<CarritoResponseDto> agregarProductos(@RequestBody List<ProductoAgregarDto> listProductos){
+    public ResponseEntity<CarritoResponseDto> agregarProductos(@RequestBody @NotEmpty List<@NotNull @Valid ProductoAgregarDto> listProductos){
        return ResponseEntity.ok(carritoService.agregarProductos(listProductos));
    }
 
    //Es un método DELETE ya que se está eliminando un recurso (productos) dentro del carrito
    @DeleteMapping("/eliminar-producto/{productoEliminarId}")
-    public ResponseEntity<CarritoResponseDto> eliminarProductos( @PathVariable Long productoEliminarId){
+    public ResponseEntity<CarritoResponseDto> eliminarProductos(@PathVariable Long productoEliminarId){
        return ResponseEntity.ok(carritoService.deleteProductos(productoEliminarId));
    }
 
    //Es un método patch ya que estamos actualizando parcialmente un recurso (producto) dentro del carrito
    @PatchMapping("/actualizar-cantidad-producto")
-    public ResponseEntity<CarritoResponseDto> cambiarCantidadProducto(@RequestBody ProductoCambiarCantidadDto productoNuevaCantidad){
+    public ResponseEntity<CarritoResponseDto> cambiarCantidadProducto(@RequestBody @Valid ProductoCambiarCantidadDto productoNuevaCantidad){
        return ResponseEntity.ok(carritoService.cambiarCantidadProducto(productoNuevaCantidad));
    }
 

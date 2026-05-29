@@ -1,9 +1,11 @@
 package com.electrodostore.carrito_service.dto;
 
-//DTO que transporta los datos necesarios para agregar un producto al carrito
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+
 public record ProductoAgregarDto(
-        Long id,
-        Integer quantity
+        @NotNull Long id,
+        @NotNull @PositiveOrZero Integer quantity
 ) implements ProductoConCantidadDto {
 
     @Override
@@ -16,3 +18,4 @@ public record ProductoAgregarDto(
         return quantity;
     }
 }
+

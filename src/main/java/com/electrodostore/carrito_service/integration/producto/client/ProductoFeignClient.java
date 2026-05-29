@@ -16,7 +16,7 @@ import java.util.List;
 public interface ProductoFeignClient {
 
     //Descripción del método para consultar una lista de productos por sus ids
-    @PostMapping("/productos/traer-productos-por-ids")
+    @PostMapping("/productos/search")
     List<ProductoIntegrationDto> findProductos(@RequestBody List<Long> productosIds);
 
     //Descripción del método para consultar un producto por su id
@@ -24,7 +24,7 @@ public interface ProductoFeignClient {
     ProductoIntegrationDto findProducto(@PathVariable Long productoId);
 
     //Descripción del método que verifica si el stock de una lista de productos es suficiente para cubrir la cantidad que se desea comprar de estos
-    @PostMapping("/productos/verificar-stock")
+    @PostMapping("/productos/stock/verificar")
     void verificarStockProductos(@RequestBody List<ProductoIntegrationStockDto> productosValidarStock);
 
 }

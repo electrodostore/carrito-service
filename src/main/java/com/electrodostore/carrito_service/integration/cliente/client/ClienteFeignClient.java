@@ -10,7 +10,10 @@ import org.springframework.web.bind.annotation.PathVariable;
         configuration = ClienteFeignConfig.class)  //Definimos la configuración para este FeignClient
 public interface ClienteFeignClient {
 
-    //Consulta los datos de un cliente y los trae si el cliente está habilitado
-    @GetMapping("/clientes/{clienteId}/availables")
+    /**
+     * Consulta los datos de un cliente y los trae si
+     * el cliente está habilitado para realizar operaciones comerciales
+     */
+    @GetMapping("/clientes/{clienteId}/enabled")
     ClienteIntegrationDto findCliente(@PathVariable Long clienteId);
 }

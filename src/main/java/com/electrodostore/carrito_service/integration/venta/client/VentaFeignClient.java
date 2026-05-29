@@ -16,6 +16,6 @@ public interface VentaFeignClient {
 
     //Descripción del método que guarda una venta a partir de los datos del carrito que se compró
     @PostMapping("/ventas")
-        VentaIntegrationResponseDto createVenta(@RequestBody List<ProductoIntegrationRequestDto> listProductos);
+    VentaIntegrationResponseDto createVenta(@RequestBody List<ProductoIntegrationRequestDto> listProductos);
 
 }

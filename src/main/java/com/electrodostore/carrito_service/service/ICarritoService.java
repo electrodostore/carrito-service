@@ -1,10 +1,10 @@
 package com.electrodostore.carrito_service.service;
 
-import com.electrodostore.carrito_service.dto.CarritoCreadoResponseDto;
 import com.electrodostore.carrito_service.dto.CarritoResponseDto;
 import com.electrodostore.carrito_service.dto.ProductoAgregarDto;
 import com.electrodostore.carrito_service.dto.ProductoCambiarCantidadDto;
 import com.electrodostore.carrito_service.integration.venta.dto.VentaIntegrationResponseDto;
+import com.electrodostore.carrito_service.model.Carrito;
 
 import java.util.List;
 
@@ -17,18 +17,34 @@ public interface ICarritoService {
     //Método para consultar un carrito por su id
     CarritoResponseDto findCarritoResponse(Long carritoId);
 
+    //Expone el carrito pendiente del cliente autenticado
+    CarritoResponseDto findMyCarritoPending();
+
     //Crear carrito asignado al cliente autenticado
-    CarritoCreadoResponseDto crearCarrito();
+    Carrito crearCarrito();
 
-    //Método para agregar uno o varios productos a un determinado carrito
-    CarritoResponseDto agregarProductos(Long carritoId, List<ProductoAgregarDto> productosAgregar);
+    /**
+     * Método para agregar uno o varios productos al
+     * carrito con estado pendiente del cliente autenticado
+     */
+    CarritoResponseDto agregarProductos(List<ProductoAgregarDto> productosAgregar);
 
-    //Método para eliminar uno o varios productos de un determinado carrito
-    CarritoResponseDto deleteProductos(Long carritoId, Long productoEliminarId);
+    /**
+     * Método para eliminar un producto del
+     * carrito con estado pendiente del cliente autenticado
+     */
+    CarritoResponseDto deleteProductos(Long productoEliminarId);
 
-    //Método que se encarga de cambiar la cantidad que se quería comprar de un producto por una nueva en un determinado carrito
-    CarritoResponseDto cambiarCantidadProducto(Long carritoId, ProductoCambiarCantidadDto productoNuevaCantidad);
+    /**
+     * Método que se encarga de cambiar la cantidad que se había
+     * establecido comprar de un producto por una nueva en
+     * el carrito pendiente del cliente autenticado
+     */
+    CarritoResponseDto cambiarCantidadProducto(ProductoCambiarCantidadDto productoNuevaCantidad);
 
-    //Método para finalmente, después de todo el proceso, se compré el carrito y se registré como venta en venta-service
-    VentaIntegrationResponseDto comprarCarrito(Long carritoId);
+    /**
+     * Compra carrito pendiente del cliente autenticado
+     * y registra la venta en venta-service
+    */
+    VentaIntegrationResponseDto comprarCarrito();
 }

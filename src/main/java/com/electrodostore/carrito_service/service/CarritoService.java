@@ -2,7 +2,6 @@ package com.electrodostore.carrito_service.service;
 
 import com.electrodostore.carrito_service.dto.*;
 import com.electrodostore.carrito_service.exception.CarritoNotFoundException;
-import com.electrodostore.carrito_service.exception.CarritoPurchasedException;
 import com.electrodostore.carrito_service.exception.ProductoNotFoundException;
 import com.electrodostore.carrito_service.exception.UnauthorizedOperationException;
 import com.electrodostore.carrito_service.integration.cliente.ClienteIntegrationService;
@@ -127,7 +126,7 @@ public class CarritoService implements ICarritoService {
         return productosNuevos;
     }
 
-    //Método propio para construir los DTO que van a viajar en la integración con producto-service para validar stoc
+    //Método propio para construir los DTO que van a viajar en la integración con producto-service para validar stock
     /*Para que el método me acepte como parámetro cualquier lista cuyo tipo me implemente una determinada interfaz,
      * se debe poner en el tipo de esta dentro del parámetro: ? extends interface*/
     private List<ProductoIntegrationStockDto> buildProductosIntegration(List<? extends ProductoConCantidadDto> listProductos){
@@ -278,13 +277,6 @@ public class CarritoService implements ICarritoService {
         return false;
     }
 
-    /*Método propio para validar el estado de un carrito. Cuando quieran hacer una operación sobre este, esta no podrá
-     ser realizada si el estado del carrito es PURCHASED, por lo que lo indicamos con una excepción.
-     Si el estado es diferente le permitimos hacer la operación sin lanzar nada*/
-    private void validarEstadoCarrito(Carrito objCarrito){
-        if(objCarrito.getStatus().equals(PURCHASED)){throw new CarritoPurchasedException("No se puede operar sobre un carrito comprado");}
-    }
-
     //Método propio para sacar una instancia de la clase DTO que me expone los datos de un carrito al cliente
     private CarritoResponseDto buildCarritoResponse(Carrito objCarrito) {
         //Sacamos objeto para la transferencia de los datos de un carrito (DTO)
@@ -317,6 +309,20 @@ public class CarritoService implements ICarritoService {
 
     }
 
+    /**
+     * Busca el carrito pendiente del cliente autenticado, o retorna
+     * excepción en caso de que no exista
+     */
+    private Carrito findCarritoPending(){
+
+        return carritoRepo.findByCliente_clientIdAndStatus(
+                getAuthenticatedClientId(),
+                PENDING
+        ).orElseThrow(
+                () -> new CarritoNotFoundException("El cliente no tiene carritos pendientes")
+        );
+
+    }
 
     @Transactional(readOnly = true)
     @Override
@@ -341,9 +347,17 @@ public class CarritoService implements ICarritoService {
         );
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public CarritoResponseDto findMyCarritoPending() {
+        return buildCarritoResponse(
+                findCarritoPending()
+        );
+    }
+
     @Transactional
     @Override
-    public CarritoCreadoResponseDto crearCarrito() {
+    public Carrito crearCarrito() {
         //Se crea el nuevo carrito que será registrado, en principio, vacío
         Carrito objCarrito = new Carrito();
 
@@ -365,23 +379,22 @@ public class CarritoService implements ICarritoService {
         //Le asignamos el estado al carrito que al momento de la creación es: PENDING (pendiente)
         objCarrito.setStatus(PENDING);
 
-        //Guardamos el registro del carrito
-        carritoRepo.save(objCarrito);
-
-        //Retornamos los datos del carrito relevante para su posterior manejo
-        return new CarritoCreadoResponseDto(objCarrito.getId(), objCarrito.getStatus());
+        //Guardamos y retornamos el registro del carrito
+        return carritoRepo.save(objCarrito);
     }
 
     @Transactional
     @Override
-    public CarritoResponseDto agregarProductos(Long carritoId, List<ProductoAgregarDto> productosAgregar) {
-        //Buscamos el carrito para confirmamos que existe
-        Carrito objCarrito = findCarrito(carritoId);
+    public CarritoResponseDto agregarProductos(List<ProductoAgregarDto> productosAgregar) {
+        //Busca el carrito con estado pendiente del cliente autenticado y caso de que no existe crea uno nuevo
+        Carrito carritoPending = carritoRepo.findByCliente_clientIdAndStatus(
+                getAuthenticatedClientId(),
+                PENDING
+        ).orElseGet(
+                this::crearCarrito
+        );
 
-        //Validamos que el estado del carrito no sea PURCHASED, en caso de que sí -> Excepción
-        validarEstadoCarrito(objCarrito);
-
-        //sacamos los ids de los productos que se quieren agregar y buscamos los productos
+        //Busca los productos asociados a los ids de los productos que se quieren agregar
         List<ProductoIntegrationDto> productosIntegration = findProductos(
                  sacarIdsProductos(productosAgregar)
         );
@@ -391,51 +404,46 @@ public class CarritoService implements ICarritoService {
 
         /*Antes de agregar los productos a la lista de productos del carrito, debemos verificar si alguno no se encuentra
          ya dentro de este. Para esto usamos el método "filtrarProductosExistentes"*/
-        List<ProductoSnapshot> productosNuevos = filtrarProductosExistentes(objCarrito, productosSnapshot);
+        List<ProductoSnapshot> productosNuevos = filtrarProductosExistentes(carritoPending, productosSnapshot);
 
         //Agregamos los nuevos productos al carrito
         for(ProductoSnapshot productoSnapshot: productosNuevos){
-            objCarrito.getListProductos().add(productoSnapshot);
+            carritoPending.getListProductos().add(productoSnapshot);
         }
 
-        //Le recalculamos el total actualizado al carrito
-        objCarrito.setTotal(
-                calcularTotalCarrito(objCarrito.getListProductos())
+        //Le  recalculamosel total actualizado al carrito
+        carritoPending.setTotal(
+                calcularTotalCarrito(carritoPending.getListProductos())
         );
 
-        //Actualizamos cambios en la base de datos
-        carritoRepo.save(objCarrito);
 
         //Preparamos el carrito para ser expuesto con los nuevos productos
-        return buildCarritoResponse(objCarrito);
+        return buildCarritoResponse(carritoPending);
     }
 
     @Transactional
     @Override
-    public CarritoResponseDto deleteProductos(Long carritoId, Long productoEliminarId) {
-        //Buscamos carrito para verificar que existe
-        Carrito objCarrito = findCarrito(carritoId);
-
-        //Validamos que el estado del carrito no sea PURCHASED, en caso de que sí -> Excepción
-        validarEstadoCarrito(objCarrito);
+    public CarritoResponseDto deleteProductos(Long productoEliminarId) {
+        //Busca carrito pendiente del cliente autenticado
+        Carrito carritoPending = findCarritoPending();
 
         //Validamos que el producto si exista en el carrito, si no -> excepción
         if(!(
-                validarProductoEnCarrito(objCarrito.getListProductos(), productoEliminarId))
+                validarProductoEnCarrito(carritoPending.getListProductos(), productoEliminarId))
         ){
             throw new ProductoNotFoundException("No existe producto con id: " +productoEliminarId + " en el carrito");
         }
 
         //Clonamos la lista de productos del carrito
         //La idea es encontrar el producto que se quiere eliminar y sacarlo de esta lista
-        Set<ProductoSnapshot> productosSobrevivientes = objCarrito.getListProductos();
+        Set<ProductoSnapshot> productosSobrevivientes = carritoPending.getListProductos();
 
         //Recorremos los productos registrados en el carrito para encontrar el que se va a eliminar
-        for(ProductoSnapshot objProducto: objCarrito.getListProductos()){
+        for(ProductoSnapshot objProducto: carritoPending.getListProductos()){
 
             //Si encontramos que el ID del producto registrado es igual al ID del producto que se mandó a eliminar, COINCIDENCIA ENCONTRADA
             if(objProducto.getProductId().equals(productoEliminarId)){
-                //Sacamos el producto de la lista auxiliar de productos
+                //Saca el producto de la lista auxiliar de productos
                 productosSobrevivientes.remove(objProducto);
 
                 //Cuando encontremos la coincidencia, ya no tiene sentido seguir buscando
@@ -445,29 +453,23 @@ public class CarritoService implements ICarritoService {
         //Al final, tendremos una lista de productos sin el producto que se mandó a eliminar
 
         //Le asignamos la nueva lista de productos a carrito
-        objCarrito.setListProductos(productosSobrevivientes);
+        carritoPending.setListProductos(productosSobrevivientes);
 
         //Calculamos el nuevo total del carrito
-        objCarrito.setTotal(calcularTotalCarrito(productosSobrevivientes));
+        carritoPending.setTotal(calcularTotalCarrito(productosSobrevivientes));
 
-        //Guardamos cambios en database
-        carritoRepo.save(objCarrito);
-
-        return buildCarritoResponse(objCarrito);
+        return buildCarritoResponse(carritoPending);
     }
 
     @Transactional
     @Override
-    public CarritoResponseDto cambiarCantidadProducto(Long carritoId, ProductoCambiarCantidadDto productoNuevaCantidad){
-        //Buscamos carrito para confirmar existencia
-        Carrito objCarrito = findCarrito(carritoId);
-
-        //Validamos que el estado del carrito no sea PURCHASED, en caso de que sí -> Excepción
-        validarEstadoCarrito(objCarrito);
+    public CarritoResponseDto cambiarCantidadProducto(ProductoCambiarCantidadDto productoNuevaCantidad){
+        //Busca carrito pendiente del cliente autenticado
+        Carrito carritoPending = findCarritoPending();
 
         //Validamos que el producto si exista en el carrito, si no -> excepción
         if(!(
-                validarProductoEnCarrito(objCarrito.getListProductos(), productoNuevaCantidad.getProductId()))
+                validarProductoEnCarrito(carritoPending.getListProductos(), productoNuevaCantidad.getProductId()))
         ){
             throw new ProductoNotFoundException("No existe producto con id: " + productoNuevaCantidad.getProductId() + " en el carrito");
         }
@@ -480,7 +482,7 @@ public class CarritoService implements ICarritoService {
 
 
         //Recorremos la lista de productos del carrito para encontrar al que se le va a modificar la cantidad
-        for(ProductoSnapshot objProducto: objCarrito.getListProductos()){
+        for(ProductoSnapshot objProducto: carritoPending.getListProductos()){
 
             //Si encontramos el producto -> Modificamos los parámetros del producto
             if(objProducto.getProductId().equals(productoNuevaCantidad.getProductId())){
@@ -498,29 +500,26 @@ public class CarritoService implements ICarritoService {
         }
 
         //Recalculamos el total del carrito con el nuevo subtotal del producto que se le cambió la cantidad
-        objCarrito.setTotal(
-                calcularTotalCarrito(objCarrito.getListProductos())
+        carritoPending.setTotal(
+                calcularTotalCarrito(carritoPending.getListProductos())
         );
 
         //Actualizamos en base de datos
-        carritoRepo.save(objCarrito);
+        carritoRepo.save(carritoPending);
 
-        return buildCarritoResponse(objCarrito);
+        return buildCarritoResponse(carritoPending);
     }
 
     @Transactional
     @Override
-    public VentaIntegrationResponseDto comprarCarrito(Long carritoId) {
-        //Primero buscamos el carrito para verificar existencia
-        Carrito objCarrito = findCarrito(carritoId);
-
-        //Validamos que el estado del carrito no sea PURCHASED, en caso de que sí -> Excepción
-        validarEstadoCarrito(objCarrito);
+    public VentaIntegrationResponseDto comprarCarrito() {
+        //Busca carrito pendiente del cliente autenticado
+        Carrito carritoPending = findCarritoPending();
 
         //Construimos la lista de productos, que van a estar en la request, a partir de los que están registrados en el carrito
         List<ProductoIntegrationRequestDto> productosRequestVenta = productoSnapshotToIntegration(
                 //Como están registrados como Set toca hacer el casting
-                new ArrayList<>(objCarrito.getListProductos())
+                new ArrayList<>(carritoPending.getListProductos())
         );
 
         //Hacemos la request a venta service para registrar la venta
@@ -529,7 +528,7 @@ public class CarritoService implements ICarritoService {
         );
 
         //Si no hay ningún error en el registro de la venta, cambiamos el estado del carrito a PURCHASED
-        objCarrito.setStatus(PURCHASED);
+        carritoPending.setStatus(PURCHASED);
 
         //Devolvemos ID de la venta que se creó
         return ventaResponse;

@@ -31,32 +31,32 @@ public class CarritoController {
        return ResponseEntity.ok(carritoService.findCarritoResponse(carritoId));
     }
 
-    @PostMapping
-   public ResponseEntity<CarritoCreadoResponseDto> crearCarrito(){
-       return ResponseEntity.ok(carritoService.crearCarrito());
-   }
+    @GetMapping("/me")
+    public ResponseEntity<CarritoResponseDto> findMyCarrito(){
+        return ResponseEntity.ok(carritoService.findMyCarritoPending());
+    }
 
    //Es una operación POST porque estamos guardando o registrando algo (productos) dentro del carrito
-   @PostMapping("/{carritoId}/agregar-productos")
-    public ResponseEntity<CarritoResponseDto> agregarProductos(@PathVariable Long carritoId, @RequestBody List<ProductoAgregarDto> listProductos){
-       return ResponseEntity.ok(carritoService.agregarProductos(carritoId, listProductos));
+   @PostMapping("/agregar-productos")
+    public ResponseEntity<CarritoResponseDto> agregarProductos(@RequestBody List<ProductoAgregarDto> listProductos){
+       return ResponseEntity.ok(carritoService.agregarProductos(listProductos));
    }
 
    //Es un método DELETE ya que se está eliminando un recurso (productos) dentro del carrito
-   @DeleteMapping("/{carritoId}/eliminar-producto/{productoEliminarId}")
-    public ResponseEntity<CarritoResponseDto> eliminarProductos(@PathVariable Long carritoId, @PathVariable Long productoEliminarId){
-       return ResponseEntity.ok(carritoService.deleteProductos(carritoId, productoEliminarId));
+   @DeleteMapping("/eliminar-producto/{productoEliminarId}")
+    public ResponseEntity<CarritoResponseDto> eliminarProductos( @PathVariable Long productoEliminarId){
+       return ResponseEntity.ok(carritoService.deleteProductos(productoEliminarId));
    }
 
    //Es un método patch ya que estamos actualizando parcialmente un recurso (producto) dentro del carrito
-   @PatchMapping("/{carritoId}/actualizar-cantidad-producto")
-    public ResponseEntity<CarritoResponseDto> cambiarCantidadProducto(@PathVariable Long carritoId, @RequestBody ProductoCambiarCantidadDto productoNuevaCantidad){
-       return ResponseEntity.ok(carritoService.cambiarCantidadProducto(carritoId, productoNuevaCantidad));
+   @PatchMapping("/actualizar-cantidad-producto")
+    public ResponseEntity<CarritoResponseDto> cambiarCantidadProducto(@RequestBody ProductoCambiarCantidadDto productoNuevaCantidad){
+       return ResponseEntity.ok(carritoService.cambiarCantidadProducto(productoNuevaCantidad));
    }
 
-   @PostMapping("/comprar-carrito/{carritoId}")
-    public ResponseEntity<VentaIntegrationResponseDto> comprarCarrito(@PathVariable Long carritoId){
+   @PostMapping("/comprar-carrito")
+    public ResponseEntity<VentaIntegrationResponseDto> comprarCarrito(){
        return ResponseEntity.status(HttpStatus.CREATED)
-               .body(carritoService.comprarCarrito(carritoId));
+               .body(carritoService.comprarCarrito());
    }
 }

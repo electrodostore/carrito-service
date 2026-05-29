@@ -6,13 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter  @Setter
-@AllArgsConstructor
-@NoArgsConstructor
 //DTO encargado de notificarle al cliente el ID y estado del carrito cuando este crea uno
-public class CarritoCreadoResponseDto {
-
-    //Datos que se van a exponer del carrito una vez se cree
-    private Long carritoId;
-    private CarritoStatus status;
-}
+public record CarritoCreadoResponseDto(
+        Long carritoId,
+        CarritoStatus status
+) {}

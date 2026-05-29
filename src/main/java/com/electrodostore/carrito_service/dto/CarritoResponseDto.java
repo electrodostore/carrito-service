@@ -13,15 +13,11 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-@Getter  @Setter
-@AllArgsConstructor
-@NoArgsConstructor
 //Clase DTO para exponer los datos del carrito de un determinado cliente, asi como los productos que hay en él
-public class CarritoResponseDto {
-
-    private Long id;
-    private BigDecimal total;
-    private List<ProductoResponseDto> listProductos = new ArrayList<>();
-    private ClienteResponseDto cliente;
-    private CarritoStatus status;
-}
+public record CarritoResponseDto(
+        Long id,
+        BigDecimal total,
+        List<ProductoResponseDto> listProductos,
+        ClienteResponseDto cliente,
+        CarritoStatus status
+) {}

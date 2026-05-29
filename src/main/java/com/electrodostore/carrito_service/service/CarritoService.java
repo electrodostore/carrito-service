@@ -75,7 +75,7 @@ public class CarritoService implements ICarritoService {
 
         //Recorremos los productos y vamos agregando cada id de cada producto
         for (ProductoAgregarDto objProducto : listProductos) {
-            productosIds.add(objProducto.getId());
+            productosIds.add(objProducto.id());
         }
 
         return productosIds;
@@ -171,14 +171,14 @@ public class CarritoService implements ICarritoService {
             //Ahora, recorremos la lista de los productos que se integraron, estos deben ser equivalentes a los que se quiere agregar
             for (ProductoIntegrationDto objProductoIntegration : productosIntegration) {
                 //Comparamos por ID cada producto para encontrar las coincidencias
-                if (objProductoAgregar.getId().equals(objProductoIntegration.getId())) {
+                if (objProductoAgregar.id().equals(objProductoIntegration.getId())) {
 
                     //Se calcula el subTotal de cada producto comprado en formato BigDecimal
-                    BigDecimal subTotal = objProductoIntegration.getPrice().multiply(BigDecimal.valueOf(objProductoAgregar.getQuantity()));
+                    BigDecimal subTotal = objProductoIntegration.getPrice().multiply(BigDecimal.valueOf(objProductoAgregar.quantity()));
 
                     //Creamos la instancia del objeto Snapshot con base a los datos de ambos objetos (objProductoIntegration y objProductoAgregar)
-                    productosSnapshot.add(new ProductoSnapshot(objProductoAgregar.getId(), objProductoIntegration.getName(), objProductoIntegration.getPrice(),
-                            objProductoAgregar.getQuantity(), subTotal,
+                    productosSnapshot.add(new ProductoSnapshot(objProductoAgregar.id(), objProductoIntegration.getName(), objProductoIntegration.getPrice(),
+                            objProductoAgregar.quantity(), subTotal,
                             objProductoIntegration.getDescription()));
                 }
             }
@@ -469,9 +469,9 @@ public class CarritoService implements ICarritoService {
 
         //Validamos que el producto si exista en el carrito, si no -> excepción
         if(!(
-                validarProductoEnCarrito(carritoPending.getListProductos(), productoNuevaCantidad.getProductId()))
+                validarProductoEnCarrito(carritoPending.getListProductos(), productoNuevaCantidad.getProductoId()))
         ){
-            throw new ProductoNotFoundException("No existe producto con id: " + productoNuevaCantidad.getProductId() + " en el carrito");
+            throw new ProductoNotFoundException("No existe producto con id: " + productoNuevaCantidad.getProductoId() + " en el carrito");
         }
 
         //Verificamos si la nueva cantidad que se quiere agregar está dentro de los límites del stock del producto
@@ -485,14 +485,14 @@ public class CarritoService implements ICarritoService {
         for(ProductoSnapshot objProducto: carritoPending.getListProductos()){
 
             //Si encontramos el producto -> Modificamos los parámetros del producto
-            if(objProducto.getProductId().equals(productoNuevaCantidad.getProductId())){
+            if(objProducto.getProductId().equals(productoNuevaCantidad.getProductoId())){
 
                 //Modificamos cantidad comprada
-                objProducto.setPurchasedQuantity(productoNuevaCantidad.getNewQuantity());
+                objProducto.setPurchasedQuantity(productoNuevaCantidad.newQuantity());
 
                 //Modificamos el subtotal
                 //Como el precio es formato BigDecimal toca convertir la nueva en un objeto de esa clase y usar el método de multiplicación correspondiente
-                objProducto.setSubTotal(objProducto.getProductPrice().multiply(BigDecimal.valueOf(productoNuevaCantidad.getNewQuantity())));
+                objProducto.setSubTotal(objProducto.getProductPrice().multiply(BigDecimal.valueOf(productoNuevaCantidad.newQuantity())));
 
                 //Cuando encontremos la coincidencia, no tiene sentido seguir buscando
                 break;

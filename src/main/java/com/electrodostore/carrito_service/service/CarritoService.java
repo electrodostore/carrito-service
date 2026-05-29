@@ -534,4 +534,15 @@ public class CarritoService implements ICarritoService {
         return ventaResponse;
     }
 
+    @Transactional
+    @Override
+    public void vaciarMiCarrito() {
+        Carrito carritoPending = findCarritoPending();
+
+        carritoPending.getListProductos().clear();
+
+        //Actualiza el total
+        carritoPending.setTotal(BigDecimal.ZERO);
+    }
+
 }

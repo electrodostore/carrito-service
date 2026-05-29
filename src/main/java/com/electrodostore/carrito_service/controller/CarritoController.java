@@ -59,4 +59,10 @@ public class CarritoController {
        return ResponseEntity.status(HttpStatus.CREATED)
                .body(carritoService.comprarCarrito());
    }
+
+   @DeleteMapping("/vaciar-carrito")
+    public ResponseEntity<Void> vaciarCarrito(){
+       carritoService.vaciarMiCarrito();
+       return ResponseEntity.noContent().build();
+   }
 }

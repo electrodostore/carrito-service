@@ -47,4 +47,6 @@ public interface ICarritoService {
      * y registra la venta en venta-service
     */
     VentaIntegrationResponseDto comprarCarrito();
+
+    void vaciarMiCarrito();
 }

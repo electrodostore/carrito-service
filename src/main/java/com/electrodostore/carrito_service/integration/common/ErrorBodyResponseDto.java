@@ -9,12 +9,12 @@ import lombok.Setter;
 @Getter  @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+/*Permite deserializar el cuerpo de una
+ * respuesta de error aunque contenga
+ * propiedades desconocidas en este dominio.*/
 @JsonIgnoreProperties(ignoreUnknown = true)
-//DTO encargado de almacenar los datos (no necesariamente todos) del body que venga en la Response con un statusCode diferente a 2xx
 public class ErrorBodyResponseDto {
 
-    /*Del body solo vamos a extraer el errorCode y el mensaje, con esto será suficiente para interpretar esa Response y saber
-    de qué tipo de excepción estamos hablando*/
     private String errorCode;
     private String mensaje;
 }

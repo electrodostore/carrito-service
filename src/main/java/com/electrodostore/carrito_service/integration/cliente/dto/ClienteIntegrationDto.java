@@ -8,7 +8,6 @@ import lombok.Setter;
 @Getter  @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-//DTO de integración donde se va a deserealizar el cliente que venga en formato Json desde cliente-service
 public class ClienteIntegrationDto {
 
     private Long id;

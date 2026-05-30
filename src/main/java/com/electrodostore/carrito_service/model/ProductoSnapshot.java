@@ -5,24 +5,32 @@ import lombok.*;
 
 import java.math.BigDecimal;
 
-@Getter  @Setter
+/**
+ * Snapshot de un producto proveniente de producto-service.
+ *
+ * Conserva los datos relevantes del producto al momento de
+ * agregarlo al carrito para evitar depender de cambios
+ * posteriores en producto-service.
+ */
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode //Métodos Equals y HashCode que Hibernate utiliza para evitar duplicidad de objetos Snapshot
-/*Clase Embeddable usada para sacar objetos embebidos cuya identidad es copiada del registro original del producto en
- producto-service y el estado de cada producto será el que tenga al momento de agregarse al carrito*/
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Embeddable
 public class ProductoSnapshot {
 
-    /*Referencia (productId) a la identidad del producto original, y por la que se comparan los Snapshot
-    embebidos para evitar duplicidad*/
+    /**
+     * Identificador del producto original.
+     * Se utiliza en equals() y hashCode() para evitar
+     * productos duplicados dentro del carrito.
+     */
     @EqualsAndHashCode.Include
     private Long productId;
+
     private String productName;
     private BigDecimal productPrice;
-    //Cantidad comprada del producto
     private Integer purchasedQuantity;
-    //Subtotal = precio * productQuantity
     private BigDecimal subTotal;
     private String productDescription;
 }

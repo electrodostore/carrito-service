@@ -5,11 +5,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Transporta datos en la integración con producto-service
+ * cuando se desea hacer una operación con el stock de un producto.
+ * */
 @Getter  @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-/*DTO que almacena los datos que viajarán en la petición a producto-service para hacer una operación (validar, reponer,
- descontar) sobre el stock de un producto */
 public class ProductoIntegrationStockDto {
 
     private Long productoId;  //Id del producto que tiene el stock sobre el que se le va a hacer la operación

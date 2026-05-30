@@ -7,7 +7,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-//Definimos el centro de las operaciones para el repositorio de carrito-service
+/**
+ * Repositorio de datos para carrito-service
+ */
 @Repository
 public interface ICarritoRepository extends JpaRepository<Carrito, Long> {
 

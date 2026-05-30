@@ -5,10 +5,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Almacena el identificador de la venta creada en venta-service
+ */
 @Getter  @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-//DTO encargado de almacenar la respuesta de venta-service cuando se registra una venta (ID de la venta que se registró)
 public class VentaIntegrationResponseDto {
 
     private Long ventaId;

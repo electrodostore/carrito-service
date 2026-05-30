@@ -10,7 +10,6 @@ import java.math.BigDecimal;
 @Getter  @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-//DTO donde se van a almacenar los datos de los productos de un carrito una vez se haga la integración
 public class ProductoIntegrationDto {
 
     private Long id;

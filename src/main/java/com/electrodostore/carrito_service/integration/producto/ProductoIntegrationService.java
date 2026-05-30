@@ -14,91 +14,82 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListResourceBundle;
 
-@Slf4j //@Slf4j contiene un logger para lanzar errores o warnings informativos al log del proyecto
-//Servicio donde se definen los métodos protegidos por Circuit-Breaker que harán diferentes peticiones a producto-service por medio del cliente Feign
+/**
+ * Define métodos protegidos por Circuit Breaker
+ * para las integraciones con producto-service
+ * realizadas mediante un cliente Feign
+ */
+@Slf4j
 @Service
 public class ProductoIntegrationService {
 
-    //Inyección de dependencia por constructor para la clase FeignClient de producto-service
     private final ProductoFeignClient productoClient;
-    public ProductoIntegrationService(ProductoFeignClient productoClient){this.productoClient = productoClient;}
 
-    /*Método protegido por Circuit-Breaker encargado de usar al FeignClient de producto-service para consultar los datos
-     de un grupo de productos por sus ids*/
-    /*En caso de que ocurra un error en la comunicación, se activará el fallback asociado a este método y ahí se manejará ya
-     sea como excepción de dominio o excepción de infraestructura*/
+    public ProductoIntegrationService(ProductoFeignClient productoClient) {
+        this.productoClient = productoClient;
+    }
+
+    /**
+     * Consulta una lista de productos en producto-service
+     * protegida con Circuit Breaker y Retry
+     */
     @CircuitBreaker(name = "producto-service", fallbackMethod = "fallbackFindProductos")
     @Retry(name = "producto-service")
-    public List<ProductoIntegrationDto> findProductos(List<Long> productosIds){
+    public List<ProductoIntegrationDto> findProductos(List<Long> productosIds) {
         return productoClient.findProductos(new ArrayList<>(productosIds));
     }
 
-    //Fallback del método findProductos
-    /*El fallback debe tener la misma firma del método al que pertenece, y el último parámetro de este debe ser un objeto
-    * de la superclase de todas las excepciones: Throwable, este objeto es la excepción que activó el fallback*/
     public List<ProductoIntegrationDto> fallbackFindProductos(List<Long> productosIds, Throwable ex){
 
-        //Filtramos las excepciones de dominio para evitar que se lance un service-unavailable y que oculte el problema real
+      //Propaga excepciones de dominio sin modificaciones
         if(ex instanceof BusinessException be){
-            /*be es la excepción original, pero ya no es de tipo estático Throwable sino BusinessException y el tipo dinámico
-            de esta es la respectiva excepción de dominio que se esté lanzando, al final será esta la que verá el cliente*/
             throw be;
         }
 
-        //Agregamos warn al log del proyecto indicando la activación del fallback
+        /*Indica el error cuando se tiene una excepción de infraestructura
+          en la comunicación*/
         log.warn("fallback activado en la consulta de varios productos a producto-service", ex);
-
-        //Si la excepción que activó el fallback no es excepción de dominio -> Excepción de infraestructura (error técnico en la comunicación)
         throw new ServiceUnavailable("Error en la comunicación con producto-service. Por favor intente de nuevo más tarde");
     }
 
-    //Método protegido por Circuit-Breaker para consultar un producto por su ID
+    /**
+     * Protege integración al consultar los datos de un producto
+     */
     @CircuitBreaker(name = "producto-service", fallbackMethod = "fallbackFindProducto")
     @Retry(name = "producto-service")
     public ProductoIntegrationDto findProducto(Long productoId){
-        //Consultamos por Feign el producto correspondiente
         return productoClient.findProducto(productoId);
     }
 
-    //Fallback para el método de consultar un producto por su id
-    //Firma del método + Throwable (Excepción que activó el fallback con tipo estático Throwable)
     public ProductoIntegrationDto fallbackFindProducto(Long productoId, Throwable ex){
 
-        //Si la excepción que activó el fallback es excepción de dominio, no tiene sentido lanzar un ServiceUnavailable
+        //Propaga excepciones del negocio sin modificaciones
         if(ex instanceof BusinessException be){
-            /*be es la excepción que activó el fallback pero parseada de tipo estático Throwable a BusinessException.
-            * De igual forma el tipo dinámico de esta sigue siendo la excepción de dominio correspondiente*/
             throw be;
         }
 
-        //Si ex no es excepción de dominio, entonces la manejamos con excepción de infraestructura
-
-        //Indicamos la activación del fallback
+        //Indica el error de infraestructura en la comunicación
         log.warn("Fallback activado en la comunicación con producto-service. productoId={}", productoId, ex);
-
-        //Lanzamos excepción indicando el problema de comunicación
         throw new ServiceUnavailable("No fue posible establecer la comunicación con producto-service. Intente de nuevo más tarde");
     }
 
-    /*Método protegido que usa el FeignClient para consultar en producto-service si el stock de una lista de productos
-       es suficiente para la cantidad que se desea comprar de estos*/
+    /**
+     * Protege integración cuando se verifica el stock de un conjunto de productos.
+     */
     @CircuitBreaker(name = "producto-service", fallbackMethod = "fallbackVerificarProductoStock")
     public void verificarProductosStock(List<ProductoIntegrationStockDto> productosValidarStock){
         productoClient.verificarStockProductos(productosValidarStock);
     }
 
-    //Fallback del método verificarProductoStock
-    public void fallbackVerificarProductoStock(Long productoId, int cantidadVerificar, Throwable ex){
+    public void fallbackVerificarProductoStock(List<ProductoIntegrationStockDto> productosValidarStock, Throwable ex){
 
-        //Si la excepción es excepción de dominio -> Evitamos el ServiceUnavailable y la lanzamos
+        //Propaga excepciones de dominio sin modificaciones
         if(ex instanceof BusinessException be){
             throw be;
         }
 
-        //Si no es excepción de dominio indicamos la activación del fallback en el log del proyecto
-        log.warn("fallback activado en verificación de stock del producto con id={}", productoId, ex);
-
-        //Lanzamos excepción de infraestructura
+        //Indica el error de infraestructura en la comunicación.
+        log.warn("fallback activado en verificación de stock de productos", ex);
         throw new ServiceUnavailable("No se pudo establecer comunicación con producto-service. Intente de nuevo más tarde");
     }
 

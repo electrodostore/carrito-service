@@ -3,7 +3,10 @@ package com.electrodostore.carrito_service.dto;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 
-//DTO que se encarga de almacenar el ID de un producto que se le va a modificar la cantidad comprada y la nueva cantidad
+/**
+ * Transporta los datos de un producto cuando se
+ * desea cambiar la cantidad agregada al carrito.
+ */
 public record ProductoCambiarCantidadDto (
         @NotNull Long productId,
         @NotNull @PositiveOrZero Integer newQuantity

@@ -13,7 +13,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-//Clase DTO para exponer los datos del carrito de un determinado cliente, asi como los productos que hay en él
 public record CarritoResponseDto(
         Long id,
         BigDecimal total,

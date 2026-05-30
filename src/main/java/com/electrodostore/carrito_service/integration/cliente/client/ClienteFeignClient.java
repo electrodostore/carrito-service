@@ -5,9 +5,11 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-//Interface FeignClient donde se va a describir y declarar cada end-point perteneciente a un determinado método en cliente-service y los parámetros requeridos por este
-@FeignClient(name = "cliente-service",  //Mismo nombre con el que se registró el servicio en eureka-server
-        configuration = ClienteFeignConfig.class)  //Definimos la configuración para este FeignClient
+/**
+ * Cliente Feign que hace peticiones a cliente-service
+ */
+@FeignClient(name = "cliente-service",
+        configuration = ClienteFeignConfig.class)
 public interface ClienteFeignClient {
 
     /**

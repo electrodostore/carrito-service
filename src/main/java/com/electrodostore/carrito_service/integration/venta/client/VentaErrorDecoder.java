@@ -52,8 +52,21 @@ public class VentaErrorDecoder implements ErrorDecoder {
                     case PRODUCT_NOT_FOUND:
                         return new ProductoNotFoundException(error.getMensaje());
 
+                }
+            }
+
+            // Procesa errores de negocio expuestos mediante HTTP 404.
+            if (response.status() == 409) {
+
+                switch (CarritoErrorCode.valueOf(error.getErrorCode())) {
+
                     case PRODUCT_STOCK_INSUFICIENTE:
-                        return new ProductoStockInsuficienteException(error.getMensaje());
+                        return new ProductoStockInsuficienteException(
+                                error.getMensaje()
+                        );
+
+                    default:
+                        return FeignException.errorStatus(methodKey, response);
                 }
             }
 

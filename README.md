@@ -1,226 +1,317 @@
+<div align="center">
+
 # 🛒 Carrito Service
 
-## 📌 Descripción
-Microservicio encargado de la gestión del carrito de compras dentro de ElectrodoStore. Permite crear carritos, agregar productos, modificar cantidades y realizar la compra final.
+### Microservicio de gestión de carritos de compra
+#### ElectrodoStore · Orquestador del proceso de compra
 
-Este servicio actúa como **orquestador del flujo de compra**, integrando múltiples microservicios como clientes, productos y ventas.
+![Spring Security](https://img.shields.io/badge/Spring_Security-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white)
+![OAuth2](https://img.shields.io/badge/OAuth2_Resource_Server-EB5424?style=for-the-badge&logo=auth0&logoColor=white)
+![OpenFeign](https://img.shields.io/badge/OpenFeign-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
+![Resilience4j](https://img.shields.io/badge/Circuit_Breaker_+_Retry-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
 
----
-
-## ⚙️ Tecnologías utilizadas
-
-- Java + Spring Boot
-- Spring Data JPA
-- MySQL
-- Spring Cloud (Eureka Client)
-- OpenFeign
-- Resilience4j (Circuit Breaker + Retry)
+</div>
 
 ---
 
-## 🧩 Responsabilidades
+Microservicio responsable de la gestión del carrito de compras dentro de **ElectrodoStore**.
 
-- Crear carritos asociados a un cliente
-- Agregar productos al carrito
-- Eliminar productos del carrito
-- Modificar cantidades de productos
-- Calcular total del carrito
-- Ejecutar la compra del carrito
-- Orquestar comunicación con otros microservicios
+Actúa como orquestador del proceso de compra, integrando información proveniente de clientes, productos y ventas mediante comunicación síncrona entre microservicios.
+
+Implementa seguridad basada en **OAuth2 Resource Server**, ownership mediante claims JWT y propagación distribuida de identidad.
 
 ---
 
-## 🗄️ Base de datos
+## 🎯 Responsabilidades
 
-Este servicio maneja su propia base de datos MySQL, siguiendo el patrón **Database per Service**, lo que garantiza independencia y desacoplamiento respecto a otros microservicios.
+- 🛒 Gestión de carritos de compra
+- 📦 Administración de productos dentro del carrito
+- 🔢 Validación de cantidades de los productos
+- 💰 Cálculo del total de compra
+- 🧾 Ejecución del proceso de compra
+- 🔐 Gestión basada en ownership
+- 📡 Propagación de identidad entre microservicios
+- 🔗 Orquestación de cliente-service, producto-service y venta-service
 
 ---
-## 🔢️ Modelo de datos
 
-El carrito está compuesto por:
+## 🧰 Stack tecnológico
 
-- **🛍️ Productos** (snapshot embebido)
-- **👤 Cliente** (snapshot embebido)
-- **💰 Total calculado**
-- **🔄 Estado del carrito** (CREATED, PURCHASED, etc.)
+![Spring Security](https://img.shields.io/badge/Spring_Security-6DB33F?style=flat-square&logo=springsecurity&logoColor=white)
+![OAuth2](https://img.shields.io/badge/OAuth2-EB5424?style=flat-square&logo=auth0&logoColor=white)
+![OpenFeign](https://img.shields.io/badge/OpenFeign-6DB33F?style=flat-square&logo=spring&logoColor=white)
+![Eureka](https://img.shields.io/badge/Eureka-6DB33F?style=flat-square&logo=spring&logoColor=white)
+![LoadBalancer](https://img.shields.io/badge/LoadBalancer-6DB33F?style=flat-square&logo=spring&logoColor=white)
+![Resilience4j](https://img.shields.io/badge/Resilience4j-6DB33F?style=flat-square&logo=spring&logoColor=white)
 
-Se utilizan **snapshots** para evitar dependencias directas con otros servicios en tiempo de lectura.
-
-### 📨 DTOs
-
-| DTO | Uso                                       |
-|---|-------------------------------------------|
-| `CarritoResponseDto` | Salida — detalle completo del carrito     |
-| `CarritoCreoadoResponseDto` | Salida — confirmación de creación y id    |
-| `ProductoAgregarDto` | Entrada — agregar producto al carrito     |
-| `ProductoCambiarCantidadDto` | Entrada — modificar cantidad              |
-| `ProductoResponseDto` | Salida — datos del producto en el carrito |
-| `ClienteResponseDto` | Salida — datos del dueño del carrito      |
 ---
 
-## 🔗 Endpoints principales
+## 📦 Modelo de dominio
 
-```http
-GET    /carritos
-GET    /carritos/{carritoId}
-POST   /carritos
-POST   /carritos/{carritoId}/agregar-productos
-DELETE /carritos/{carritoId}/eliminar-producto/{productoId}
-PATCH  /carritos/{carritoId}/actualizar-cantidad-producto
-POST   /carritos/comprar-carrito/{carritoId}
+```mermaid
+flowchart LR
+
+Cart["🛒 Carrito"]
+Client["👤 Cliente Snapshot"]
+Product["📦 Producto Snapshot"]
+
+Cart --> Client
+Cart --> Product
 ```
 
----
-
-## 🔄 Integración con otros servicios
-
-Este servicio se integra con:
-
-- **🛍️ producto-service** → consulta de productos y validación de stock
-- **👤 cliente-service** → validación de cliente
-- **💳 venta-service** → registro de la compra
-
-La comunicación se realiza mediante **Spring Cloud OpenFeign**.
+> El carrito almacena **snapshots** de cliente y productos para evitar dependencias externas durante operaciones de lectura, manteniendo consistencia histórica incluso cuando la información original cambia en otros servicios.
 
 ---
 
-## 🛡️ Resiliencia (Circuit Breaker + Retry)
+## 🔐 Modelo de seguridad
 
-La comunicación con **producto-service**, **cliente-service** y **venta-service** están protegidas mediante patrones de resiliencia utilizando **Resilience4j**:
+El servicio funciona como **OAuth2 Resource Server** y valida localmente los JWT emitidos por Auth Service.
 
-- **Circuit Breaker** → Evita llamadas repetidas a un servicio caído
-- **Retry** → Reintenta automáticamente en fallos transitorios
-- **Fallback** → Proporciona una respuesta controlada en caso de error
+### Claims utilizados
 
-### 🔁 Flujo de resiliencia
+| Claim | Descripción |
+| --- | --- |
+| `sub` | Username autenticado |
+| `userId` | Identificador interno del usuario |
+| `clientId` | Identificador del cliente asociado |
 
-1. Se intenta consumir el servicio de productos, clientes o ventas
-2. Si falla la integración, se realizan reintentos automáticos
-3. Si el fallo persiste, se activa el **Circuit Breaker**
-4. Se ejecuta el método **fallback**
-5. Se lanza una excepción controlada (`ServiceUnavailable`)
+### Flujo de autorización
 
-### ⚠️ Fallback
+```mermaid
+flowchart LR
 
-Cuando alguno de los servicios no está disponible:
+User["👤 Cliente"]
+Gateway["🌐 API Gateway"]
+Cart["🛒 Carrito Service"]
 
-- Se registra un log de advertencia
-- Se lanza una excepción de tipo infraestructura
-- Se evita propagar errores internos al cliente
+User -->|Bearer JWT| Gateway
+Gateway --> Cart
+```
+
+**Proceso:**
+
+1. El usuario envía el JWT al API Gateway
+2. Gateway enruta la solicitud a Carrito Service
+3. Spring Security valida la firma RSA
+4. Se reconstruye la identidad del usuario
+5. El claim `clientId` se utiliza para resolver ownership
+
+> 💡 El servicio no requiere comunicación con Auth Service para validar usuarios autenticados.
 
 ---
 
-## 🔁 Estrategia clave
+## 👤 Ownership
 
-- Se filtran excepciones de dominio (`BusinessException`)
-- Se propagan errores reales del negocio
-- Solo errores técnicos generan `ServiceUnavailable`
+Las operaciones del carrito utilizan el claim `clientId` obtenido desde el JWT para determinar automáticamente el propietario. No es necesario enviar identificadores de cliente ni de carrito para operaciones personales.
 
-Esto evita ocultar problemas reales bajo errores genéricos.
+### Endpoints propios
+
+```http
+GET    /carritos/me
+POST   /carritos/me/productos
+DELETE /carritos/me/productos/{productoId}
+PATCH  /carritos/me/productos
+POST   /carritos/me/comprar
+DELETE /carritos/me/productos
+```
+
+> El acceso a los recursos se resuelve utilizando la identidad autenticada presente en el `SecurityContext`.
+
+---
+
+## 🔄 Gestión automática de carritos
+
+### Estados del carrito
+
+| Estado | Descripción |
+|---------|------------|
+| `PENDING` | Carrito activo disponible para agregar, eliminar o modificar productos |
+| `PURCHASED` | Carrito cuya compra ya fue completada |
+
+Cuando un cliente agrega productos:
+
+1. Se busca un carrito con estado `PENDING`.
+2. Si existe, se reutiliza.
+3. Si no existe, se crea automáticamente.
+4. Se agregan los productos solicitados.
+
+> De esta manera cada cliente mantiene un único carrito activo durante el proceso de compra.
+
+---
+
+## 🔗 Integración entre microservicios
+
+Carrito Service coordina información proveniente de múltiples dominios:
+
+```mermaid
+flowchart LR
+
+Cart["🛒 Carrito Service"]
+Feign["📡 OpenFeign + JWT"]
+Product["📦 Producto Service"]
+Client["👤 Cliente Service"]
+Sale["💳 Venta Service"]
+
+Cart --> Feign
+Feign --> Product
+Feign --> Client
+Feign --> Sale
+```
+
+### Integraciones
+
+| Servicio | Propósito |
+| --- | --- |
+| `producto-service` | Consulta de productos y validación de stock |
+| `cliente-service` | Obtención de información del cliente |
+| `venta-service` | Registro de compras |
+
+**Características:**
+
+- 🔗 Comunicación síncrona vía OpenFeign
+- 🪙 Propagación automática del JWT
+- 🔍 Descubrimiento dinámico con Eureka
+- ⚖️ Balanceo con Spring Cloud LoadBalancer
+
+---
+
+## 🛒 Flujo de compra
+
+```mermaid
+flowchart TD
+
+A["👤 Cliente autenticado"]
+--> B["🛒 Obtener carrito PENDING"]
+
+B --> C["📦 Validar productos"]
+
+C --> D["💰 Calcular total"]
+
+D --> E["💳 Registrar venta"]
+
+E --> F["✅ Marcar carrito como PURCHASED"]
+```
+
+**Proceso:**
+
+1. Se obtiene el carrito activo del cliente
+2. Se validan productos y stock disponible
+3. Se calcula el valor total
+4. Se registra la venta en `venta-service`
+5. El carrito cambia a estado `PURCHASED`
+
+---
+
+## 🛡️ Resiliencia
+
+Las integraciones externas están protegidas mediante:
+
+| Mecanismo | Propósito |
+| --- | --- |
+| **Retry** | Reintentos automáticos ante fallos transitorios |
+| **Circuit Breaker** | Aislamiento de fallos |
+| **Fallbacks** | Respuestas controladas ante degradación |
+
+> Esto evita propagación de fallos en cascada dentro del sistema distribuido.
 
 ---
 
 ## ⚠️ Manejo de errores
 
-Se implementa un manejador global con @RestControllerAdvice.
+Se utiliza manejo centralizado mediante `@RestControllerAdvice`, códigos de error de dominio, traducción de errores provenientes de Feign y respuestas consistentes.
 
-### Excepciones manejadas:
-- `CarritoNotFoundException`
-- `ProductoNotFoundException`
-- `ClienteNotFoundException`
-- `ProductoStockInsuficienteException`
-- `CarritoPurchasedException`
-- `ServiceUnavailable`
-
-### Estructura de error:
-
-```bash
+```json
 {
-  "timestamp": "2026-03-28T12:00:00",
+  "timestamp": "...",
   "status": 404,
   "error": "NOT_FOUND",
   "errorCode": "PRODUCT_NOT_FOUND",
-  "mensaje": "Producto no encontrado"
+  "message": "Producto no encontrado"
 }
 ```
 
 ---
 
-## 🔍 Interpretación de errores (ErrorDecoder)
+## 🔍 Traducción de errores remotos
 
-Se implementan ErrorDecoders personalizados para:
+Se implementan `ErrorDecoder` personalizados para interpretar errores provenientes de otros servicios, desacoplando la lógica de negocio de las respuestas HTTP externas.
 
-- Traducir errores HTTP en excepciones de dominio
-- Interpretar `errorCode` provenientes de otros servicios
-
-####  **Ejemplo:**
-
-- `CLIENT_NOT_FOUND` → `ClienteNotFoundException`
-- `PRODUCT_NOT_FOUND` → `ProductoNotFoundException`
-- `PRODUCT_STOCK_INSUFICIENTE` → excepción específica
-
-Esto permite mantener consistencia en el dominio sin depender de respuestas externas.
+| Error remoto | Excepción local |
+| --- | --- |
+| `CLIENT_NOT_FOUND` | `ClienteNotFoundException` |
+| `PRODUCT_NOT_FOUND` | `ProductoNotFoundException` |
+| `PRODUCT_STOCK_INSUFFICIENT` | `ProductoStockInsuficienteException` |
 
 ---
 
-## 🎯 Flujo de compra (caso principal)
-1. Se obtiene el carrito
-2. Se valida el cliente
-3. Se consultan productos
-4. Se valida stock
-5. Se calcula el total
-6. Se envía la venta a venta-service
-7. Se actualiza el estado del carrito a PURCHASED
+## 🌐 Endpoints
+
+### 👨‍💼 Administración
+
+| Método | Endpoint | Descripción |
+| --- | --- | --- |
+| `GET` | `/carritos` | Listar todos los carritos |
+| `GET` | `/carritos/{id}` | Obtener carrito por ID |
+
+### 👤 Cliente autenticado
+
+| Método | Endpoint | Descripción |
+| --- | --- | --- |
+| `GET` | `/carritos/me` | Obtener carrito activo |
+| `POST` | `/carritos/me/productos` | Agregar productos |
+| `DELETE` | `/carritos/me/productos/{productoId}` | Eliminar producto |
+| `PATCH` | `/carritos/me/productos` | Modificar cantidad |
+| `DELETE` | `/carritos/me/productos` | Vaciar carrito |
+| `POST` | `/carritos/me/comprar` | Ejecutar compra |
 
 ---
 
-## 🌐 Registro en Eureka
+## 🏗️ Arquitectura
 
-El servicio se registra automáticamente en Eureka Server, permitiendo su descubrimiento dinámico.
-
----
-
-## ▶️ Ejecución local
-
-> ⚠️ Requiere que **Config Server** y **Eureka Server** estén corriendo antes de iniciar este servicio.
-
-**Con Maven**
-```bash
-# Corre en el puerto 8282
-mvn spring-boot:run
-```
-
-**Con Docker**
-```bash
-docker build -t carrito-service .
-```
-
----
-
-## 🔌 Configuración de red
-
-| Propiedad | Valor                  |
-|---|------------------------|
-| Puerto interno | `8282`                 |
-| Acceso externo | ❌ Solo vía API Gateway |
+- 🌐 API Gateway como punto único de entrada
+- 🔐 JWT validado localmente mediante OAuth2 Resource Server
+- 👤 Ownership basado en claim `clientId`
+- 📡 Propagación de identidad entre microservicios
+- 🔗 Integración síncrona mediante OpenFeign
+- 🔍 Descubrimiento dinámico con Eureka
+- 🛡️ Resiliencia mediante Circuit Breaker y Retry
 
 ---
 
 ## 💡 Decisiones de diseño
 
-- Uso de snapshots para desacoplar servicios
-- Uso de DTOs para controlar la entrada y salida de datos
-- Separación clara entre lógica de negocio e integración
-- Manejo centralizado de errores
-- Resiliencia en llamadas externas
-- Interpretación de errores externos a dominio propio
+<details>
+<summary><b>Snapshots para desacoplamiento de lectura</b></summary>
+<br>
+Almacenar snapshots evita dependencias externas en tiempo de consulta y garantiza consistencia histórica.
+</details>
 
----
+<details>
+<summary><b>Ownership basado en identidad autenticada</b></summary>
+<br>
+El claim <code>clientId</code> del JWT resuelve automáticamente el propietario sin necesidad de parámetros adicionales.
+</details>
 
-## 🚀 Mejoras futuras
-- Implementación de autenticación (JWT / OAuth2)
-- Uso de eventos (Kafka/RabbitMQ) para compras
-- Cache para productos
-- Observabilidad (tracing + logs distribuidos)
+<details>
+<summary><b>Resolución automática del carrito activo</b></summary>
+<br>
+Se reutiliza el carrito en estado <code>PENDING</code> o se crea uno nuevo, manteniendo un único carrito activo por cliente.
+</details>
 
----
+<details>
+<summary><b>Validación distribuida mediante JWT</b></summary>
+<br>
+Cada servicio valida el token localmente con la clave pública RSA, sin depender del Auth Service en tiempo de ejecución.
+</details>
+
+<details>
+<summary><b>Traducción de errores remotos a excepciones de dominio</b></summary>
+<br>
+Los <code>ErrorDecoder</code> personalizados desacoplan la lógica de negocio de las respuestas HTTP externas.
+</details>
+
+<details>
+<summary><b>Database per Service</b></summary>
+<br>
+Cada microservicio gestiona su propia base de datos, reduciendo el acoplamiento entre dominios.
+</details>

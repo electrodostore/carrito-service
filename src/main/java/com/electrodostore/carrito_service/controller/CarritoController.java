@@ -34,38 +34,38 @@ public class CarritoController {
         return ResponseEntity.ok(carritoService.findCarritoResponse(carritoId));
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('CLIENT')")
     @GetMapping("/me")
     public ResponseEntity<CarritoResponseDto> findMyCarrito(){
         return ResponseEntity.ok(carritoService.findMyCarritoPending());
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('CLIENT')")
     @PostMapping("/me/productos")
     public ResponseEntity<CarritoResponseDto> agregarProductos(@RequestBody @NotEmpty List<@NotNull @Valid ProductoAgregarDto> listProductos){
         return ResponseEntity.ok(carritoService.agregarProductos(listProductos));
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('CLIENT')")
     @DeleteMapping("/me/productos/{productoEliminarId}")
     public ResponseEntity<CarritoResponseDto> eliminarProductos(@PathVariable Long productoEliminarId){
         return ResponseEntity.ok(carritoService.deleteProductos(productoEliminarId));
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('CLIENT')")
     @PatchMapping("/me/productos")
     public ResponseEntity<CarritoResponseDto> cambiarCantidadProducto(@RequestBody @Valid ProductoCambiarCantidadDto productoNuevaCantidad){
         return ResponseEntity.ok(carritoService.cambiarCantidadProducto(productoNuevaCantidad));
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('CLIENT')")
     @PostMapping("/me/comprar")
     public ResponseEntity<VentaIntegrationResponseDto> comprarCarrito(){
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(carritoService.comprarCarrito());
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('CLIENT')")
     @DeleteMapping("/me/productos")
     public ResponseEntity<Void> vaciarCarrito(){
         carritoService.vaciarMiCarrito();

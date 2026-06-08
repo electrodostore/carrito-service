@@ -14,11 +14,9 @@ spring:
     hibernate:
       ddl-auto: create-drop
 
-jwt:
-  private:
-    key: classpath:keys/private.pem
-  public:
-    key: classpath:keys/public.pem
 
-  user:
-    generator: "usuario_test_generador"
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          public-key-location: classpath:keys/public.pem
